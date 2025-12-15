@@ -1,4 +1,4 @@
-const User = require("../models/user.Model");
+const User = require("../../models/user.Model");
 
 const registerUser = async (req, res) => {
   try {
@@ -14,6 +14,8 @@ const registerUser = async (req, res) => {
       studentId,
       password,
     } = req.body;
+
+    return res.status(201).json({ success: true, message: "good" });
 
     console.log(req.body)
   } catch (error) {

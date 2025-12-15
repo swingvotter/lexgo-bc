@@ -8,6 +8,7 @@ function geoIpMiddleware(req, res, next) {
   req.detectedCountry = geo?.country || null;
 
   console.log("Detected country:", req.detectedCountry);
+  console.log("Detected country:", req.ip);
 
   next(); // pass control to next middleware or route
 }

@@ -1,9 +1,10 @@
 const express = require("express")
-const registerUser = require("../controllers/register")
-const loginUser = require("../controllers/login")
+const registerUser = require("../controllers/auth/register")
+const loginUser = require("../controllers/auth/login")
 const router = express.Router()
+const geoIpMiddleware = require("../middleware/geoIpMiddleware")
 
-router.post("/register",registerUser)
+router.post("/register",geoIpMiddleware,registerUser)
 router.post("/login",loginUser)
 
 module.exports = router
