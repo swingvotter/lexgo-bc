@@ -5,6 +5,6 @@ const router = express.Router()
 const geoIpMiddleware = require("../middleware/geoIpMiddleware")
 
 router.post("/register",geoIpMiddleware,registerUser)
-router.post("/login",loginUser)
+router.post("/login",geoIpMiddleware,loginUser)
 
 module.exports = router

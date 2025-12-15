@@ -76,7 +76,11 @@ const userSchema = new mongoose.Schema({
     learningStreak: { type: Number, default: 0 },
     lastActiveDate: { type: Date },
   },
-
+  detectedCountry: {
+    type: String,
+    trim: true,
+    default:undefined,
+  },
   // Number of AI questions asked by the user
   askAI: {
     type: Number,
