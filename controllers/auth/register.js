@@ -55,7 +55,9 @@ const registerUser = async (req, res) => {
       detectedCountry:detectedC
     })
 
-    return res.status(201).json({ success: true, message: "account created successfully",data:user });
+    const safeUser = await User.findById(user._id);
+
+    return res.status(201).json({ success: true, message: "account created successfully",data:safeUser });
 
   } catch (error) {
     return res.status(500).json({ success: false, message: `error:: ${error}` });
