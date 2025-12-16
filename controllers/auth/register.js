@@ -1,10 +1,9 @@
 const User = require("../../models/user.Model");
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
 
 const registerUser = async (req, res) => {
   try {
-
-    const detectedC = req.detectedCountry
+    const detectedC = req.detectedCountry;
 
     const {
       firstName,
@@ -17,6 +16,7 @@ const registerUser = async (req, res) => {
       email,
       studentId,
       password,
+      confirmPassword,
       role,
     } = req.body;
 
@@ -29,19 +29,33 @@ const registerUser = async (req, res) => {
       !program ||
       !email ||
       !studentId ||
-      !password) {     
-        return res.status(400).json({ success: true, message: "invalid fields",doc:"make sure all fields are correctly spelt and included" });
-      }
-      
-      const existingUser = await User.findOne({email})
-      
-      if(existingUser){
-      return res.status(400).json({ success: true, message: "user already exist"}); 
-     }
+      !password ||
+      !confirmPassword
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "invalid fields",
+        doc: "make sure all fields are correctly spelt and included",
+      });
+    }
 
-     const hashPassword = await bcrypt.hash(password,10)
+    if (password !== confirmPassword)
+      return res
+        .status(400)
+        .json({ success: false, message: "password do not match" });
 
-     const user = await User.create({firstName,
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "user already exist" });
+    }
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      firstName,
       lastName,
       otherName,
       phoneNumber,
@@ -50,17 +64,22 @@ const registerUser = async (req, res) => {
       program,
       email,
       studentId,
-      password:hashPassword,
+      password: hashPassword,
       role,
-      detectedCountry:detectedC
-    })
+      detectedCountry: detectedC,
+    });
 
     const safeUser = await User.findById(user._id);
 
-    return res.status(201).json({ success: true, message: "account created successfully",data:safeUser });
-
+    return res.status(201).json({
+      success: true,
+      message: "account created successfully",
+      data: safeUser,
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: `error:: ${error}` });
+    return res
+      .status(500)
+      .json({ success: false, message: `error:: ${error}` });
   }
 };
 

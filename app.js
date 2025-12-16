@@ -4,6 +4,13 @@ const app = express()
 const cookieParser = require("cookie-parser")
 const helmet = require("helmet")
 const AuthRouter = require("./routes/authRoutes")
+const authMiddleware = require("./middleware/authMiddleware")
+const cors = require("cors")
+
+app.use(cors({
+    origin:true,
+    credentials:true
+}))
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -13,7 +20,7 @@ app.use(helmet())
 //ROUTES START HERE
 app.use("/api/Auth",AuthRouter)
 
-app.get("/test",(req,res)=>{
+app.get("/test",authMiddleware,(req,res)=>{
     res.send("hello world")
 })
 

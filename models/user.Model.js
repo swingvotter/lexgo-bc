@@ -60,8 +60,7 @@ const userSchema = new mongoose.Schema({
     match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
   },
   password: {
-    type: String,
-    select:false
+    type: String
   },
   role: {
     type: String,
@@ -75,12 +74,16 @@ const userSchema = new mongoose.Schema({
   progress: {
     lessonsCompleted: { type: Number, default: 0 },
     learningStreak: { type: Number, default: 0 },
-    lastActiveDate: { type: Date },
+    lastActiveDate: { type: Date,default:Date.now },
   },
   detectedCountry: {
     type: String,
     trim: true,
     default:undefined,
+  },
+  refreshToken: {
+    type: String,
+    trim: true,
   },
   // Number of AI questions asked by the user
   askAI: {
