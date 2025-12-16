@@ -19,8 +19,12 @@ const authMiddleware = async(req,res,next)=>{
         next()
 
     } catch(error){
-        return res.status(401).json({success:false,message:`error from middleware: ${error}`})      
+    // Token invalid or expired
+    if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
+    return res.status(500).json({ success: false, message: `Middleware error: ${error.message}` });
+  }
 }
 
 module.exports = authMiddleware

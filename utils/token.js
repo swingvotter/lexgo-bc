@@ -8,10 +8,18 @@ const generateAccessToken = (userId) => {
 };
 
 const generateRefreshToken = (userId) => {
-  const token = jwt.sign({ id: userId }, process.env.Refresh_TOKEN_SECRET, {
+  const token = jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
   return token;
 };
 
-module.exports = { generateAccessToken, generateRefreshToken };
+const safeVerifyToken = (token, secret) => {
+    try {
+        return jwt.verify(token, secret)
+    } catch {
+        return null
+    }
+}
+
+module.exports = { generateAccessToken, generateRefreshToken,safeVerifyToken };
