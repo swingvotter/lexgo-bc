@@ -1,27 +1,24 @@
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
 
-const otpHasher = async(otp)=>{
-    try{
+const otpHasher = async (otp) => {
+  try {
+    const result = await bcrypt.hash(otp, Number(process.env.HASHING_OTP_SALT));
 
-        const result = await bcrypt.hash(otp,process.env.HASHING_OTP_SALT)
-        
-        return result
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-    }catch(error){
-        console.log(error);
-    }
-}
 
-const passwordHasher = async(password)=>{
-    try{
+const passwordHasher = async (password) => {
+  try {
+    const result = await bcrypt.hash(password, Number(process.env.HASHING_OTP_SALT));
 
-        const result = await bcrypt.hash(otp,process.env.HASHING_PASSWORD_SALT)
-        
-        return result
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-    }catch(error){
-        console.log(error);
-    }
-}
-
-module.exports = {otpHasher,passwordHasher}
+module.exports = { otpHasher, passwordHasher };

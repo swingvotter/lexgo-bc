@@ -35,8 +35,8 @@ const sendOtp = async (req, res) => {
 
     const subject = "otp verification";
     const otp = otpGenerator();
-    const content = `your verication code is ${otp} valid for 15 minutes`;
-    const otpHash = otpHasher(otp);
+    const content = `your verification code is ${otp} valid for 15 minutes`;
+    const otpHash = await otpHasher(otp);
 
     console.log(otp);
 

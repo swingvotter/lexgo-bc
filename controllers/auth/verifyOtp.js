@@ -8,10 +8,19 @@ const otpVerificationHandler = async (req, res) => {
 
     const token = req.cookies.otpCodeToken;
     
+    const user = await User.findOne({ "passwordReset.token":token });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "invalid token.",
+      });
+    }
+
     const otpExpiry = user.passwordReset.otpExpiry;
     const tokenExpiry = user.passwordReset.tokenExpiry;
     const dbOtp = user.passwordReset.otp;
-    const dbToken = user.passwordReset.dbToken;
+    const dbToken = user.passwordReset.token;
 
     if (!otpCode) {
       return res.status(400).json({
@@ -24,15 +33,6 @@ const otpVerificationHandler = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "token is missing",
-      });
-    }
-
-    const user = await User.findOne({ "passwordReset.token":token });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "invalid token.",
       });
     }
 
