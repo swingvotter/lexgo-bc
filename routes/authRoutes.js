@@ -14,7 +14,7 @@ const {passwordLimiter,otpLimiter} = require("../utils/rateLimiter")
 router.post("/register",geoIpMiddleware,registerUser)
 router.post("/login",passwordLimiter,geoIpMiddleware,loginUser)
 router.post("/logout",logoutUser)
-router.post("/-otp",otpLimiter,sendOtp)
+router.post("/send-otp",otpLimiter,sendOtp)
 router.post("/reset-password",resetPassword)
 router.post("/refresh-token",geoIpMiddleware,authMiddleware,refreshTokenRotation)
 
