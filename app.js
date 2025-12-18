@@ -6,9 +6,7 @@ const helmet = require("helmet")
 const AuthRouter = require("./routes/authRoutes")
 const authMiddleware = require("./middleware/authMiddleware")
 const cors = require("cors")
-const sendMail = require("./utils/mailSender")
 
-sendMail("swingvotter@gmail.com","test123","this is for testing")
 
 app.use(cors({
     origin:true,

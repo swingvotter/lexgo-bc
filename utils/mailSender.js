@@ -26,6 +26,6 @@ async function sendMail(to,subject,content){
     }
 }
 
-sendMail("swingvotter@gmail.com","test123","this is for testing")
+/* sendMail("swingvotter@gmail.com","test123","this is for testing") */
 
 module.exports = sendMail

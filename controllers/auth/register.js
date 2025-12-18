@@ -69,7 +69,7 @@ const registerUser = async (req, res) => {
       detectedCountry: detectedC,
     });
 
-    const safeUser = await User.findById(user._id);
+    const safeUser = await User.findById(user._id).select("-password");
 
     return res.status(201).json({
       success: true,
@@ -79,7 +79,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message: `error:: ${error}` });
+      .json({ success: false, message: `error:: ${error.message}` });
   }
 };
 
