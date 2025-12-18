@@ -90,6 +90,13 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  passwordReset: {
+    otp: { type: String, default: null },           // Hashed OTP
+    otpExpiry: { type: Date, default: null },       // OTP expiration time
+    token: { type: String, default: null },         // Reset token (after OTP verified)
+    tokenExpiry: { type: Date, default: null },     // Token expiration time
+    isVerified:{type:Boolean,default:false}
+  },
   createdAt: {
     type: Date,
     default: Date.now,

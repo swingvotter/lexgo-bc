@@ -18,6 +18,9 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 app.use(helmet())
 
+// Trust proxy - required for Render, Heroku, etc.
+app.set('trust proxy', 1)
+
 //ROUTES START HERE
 app.use("/api/Auth",AuthRouter)
 

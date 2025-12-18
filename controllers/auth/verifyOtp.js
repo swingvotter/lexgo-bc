@@ -1,65 +1,64 @@
 const User = require("../../models/user.Model");
-const sendMail = require("../../utils/mailSender");
-const { otpHasher } = require("../../utils/hashing");
-const otpGenerator = require("../../utils/otpGenerator");
-const crypto = require("crypto");
-
+const bcrypt = require("bcrypt");
 
 const otpVerificationHandler = async (req, res) => {
   try {
-    const { email } = req.body;
+    
+    const { otpCode } = req.body;
 
-    if (!email) {
-      return res
-      .status(400)
-      .json({ success: false, message: "All fields are required" });
+    const token = req.cookies.otpCodeToken;
+    
+    const otpExpiry = user.passwordReset.otpExpiry;
+    const tokenExpiry = user.passwordReset.tokenExpiry;
+    const dbOtp = user.passwordReset.otp;
+    const dbToken = user.passwordReset.dbToken;
+
+    if (!otpCode) {
+      return res.status(400).json({
+        success: false,
+        message: "all fields is required",
+      });
     }
-    
-    const user = await User.findOne({ email });
-    
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "token is missing",
+      });
+    }
+
+    const user = await User.findOne({ "passwordReset.token":token });
+
     if (!user) {
-      return res
-      .status(400)
-      .json({ success: false, message: "If an account exists, an OTP has been sent." });
+      return res.status(400).json({
+        success: false,
+        message: "invalid token.",
+      });
     }
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
 
-    const hashedToken = crypto
-    .createHash("sha256")
-    .update(rawToken)
-    .digest("hex");
-    
-    console.log(rawToken);
-    console.log(hashedToken);
+    if (Date.now() > otpExpiry || Date.now() > tokenExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "otp expired.",
+      });
+    }
 
-    const subject = "otp verification";
-    const otp = otpGenerator();
-    const content = `your verication code is ${otp}`;
-    const otpHash = otpHasher(otp);
+    const isTokenMatch = await bcrypt.compare(otpCode, dbOtp);
 
-    console.log(otp);
+    if (!isTokenMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "invalid token do not match.",
+      });
+    }
 
-   await sendMail(email, subject, content);
-
-    res.cookie("otpCodeToken", rawToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    user.passwordReset.otp = otpHash;
-    user.passwordReset.otpExpiry = Date.now() + 15 * 60 * 1000;
-    user.passwordReset.token = hashedToken;
-    user.passwordReset.tokenExpiry = Date.now() + 15 * 60 * 1000;
-
-    
+    user.passwordReset.isVerified = true;
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "If an account exists, an OTP has been sent.",
+      message: "otp succesfully verified",
     });
   } catch (error) {
     return res
