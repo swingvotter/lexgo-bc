@@ -29,18 +29,16 @@ const sendOtp = async (req, res) => {
     .createHash("sha256")
     .update(rawToken)
     .digest("hex");
-    
-    console.log(rawToken);
-    console.log(hashedToken);
 
-    const subject = "otp verification";
+    const subject = "OTP Verification - LexGo";
     const otp = otpGenerator();
-    const content = `your verification code is ${otp} valid for 15 minutes`;
+    const content = `Your verification code is ${otp}. Valid for 15 minutes.`;
     const otpHash = await otpHasher(otp);
 
-    console.log(otp);
-
-   await sendMail(email, subject, content);
+    // Fire and forget - don't block the response
+    sendMail(email, subject, content).catch(err => 
+      console.error("Email send failed:", err.message)
+    );
 
     res.cookie("otpCodeToken", hashedToken, {
       httpOnly: true,
