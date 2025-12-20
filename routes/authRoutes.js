@@ -17,7 +17,7 @@ router.post("/login",passwordLimiter,geoIpMiddleware,loginUser)
 router.post("/logout",logoutUser)
 router.post("/send-otp",otpLimiter,sendOtp)
 router.post("/verify-otp",otpLimiter,otpVerificationHandler)
-router.post("/reset-password",otpLimiter,resetPassword)
+router.patch("/reset-password",otpLimiter,resetPassword)
 router.post("/refresh-token",geoIpMiddleware,authMiddleware,refreshTokenRotation)
 
 module.exports = router
