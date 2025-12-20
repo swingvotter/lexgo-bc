@@ -10,7 +10,7 @@ const cors = require("cors")
 
 const AuthRouter = require("./routes/authRoutes")
 const AdminRouter = require("./routes/admin.Routes")
-const AIRouter = require("./routes/AI.Routh")
+const AIRouter = require("./routes/Ai.Routes")
 
 
 app.use(cors({
@@ -30,7 +30,7 @@ app.set('trust proxy', 1)
 
 //ROUTES START HERE
 app.use("/api/Auth",AuthRouter)
-app.use("/api/AI", AIRouter)
+app.use("/api/Ai", AIRouter)
 app.use("/api/Admin", AdminRouter)
 
 app.get("/test",authMiddleware,(req,res)=>{
