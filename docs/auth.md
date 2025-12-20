@@ -1,12 +1,12 @@
-# LexGo Authentication API Documentation
+# Authentication API Documentation
 
 **Base URL:** `/api/Auth`  
-**Version:** 1.0  
-**Last Updated:** December 2024
+**Version:** 1.0
 
 ---
 
 ## Table of Contents
+
 1. [Register](#1-register)
 2. [Login](#2-login)
 3. [Logout](#3-logout)
@@ -15,8 +15,6 @@
    - [Verify OTP](#42-verify-otp)
    - [Reset Password](#43-reset-password)
 5. [Refresh Token](#5-refresh-token)
-6. [Cookies Reference](#6-cookies-reference)
-7. [Error Handling](#7-error-handling)
 
 ---
 
@@ -27,6 +25,7 @@ Creates a new user account.
 **Endpoint:** `POST /api/Auth/register`
 
 ### Request Body
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `firstName` | string | ✅ Yes | User's first name |
@@ -43,6 +42,7 @@ Creates a new user account.
 | `role` | string | ❌ No | One of: `student`, `lecturer`, `admin`, `judge`, `lawyer`. Default: `student` |
 
 ### Example Request
+
 ```json
 {
   "firstName": "John",
@@ -59,6 +59,7 @@ Creates a new user account.
 ```
 
 ### Success Response (201)
+
 ```json
 {
   "success": true,
@@ -68,12 +69,20 @@ Creates a new user account.
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@example.com",
-    // ... other user fields (password excluded)
+    "role": "student",
+    "progress": {
+      "lessonsCompleted": 0,
+      "learningStreak": 0,
+      "lastActiveDate": "2024-12-01T00:00:00.000Z"
+    },
+    "onboardingCompleted": false,
+    "createdAt": "2024-12-01T00:00:00.000Z"
   }
 }
 ```
 
 ### Error Responses
+
 | Status | Message |
 |--------|---------|
 | 400 | `invalid fields` - Missing required fields |
@@ -84,17 +93,19 @@ Creates a new user account.
 
 ## 2. Login
 
-Authenticates user and returns access token.
+Authenticates user and returns access token. Also updates login streak.
 
 **Endpoint:** `POST /api/Auth/login`
 
 ### Request Body
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `email` | string | ✅ Yes | User's email |
 | `password` | string | ✅ Yes | User's password |
 
 ### Example Request
+
 ```json
 {
   "email": "john.doe@example.com",
@@ -103,6 +114,7 @@ Authenticates user and returns access token.
 ```
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -112,20 +124,29 @@ Authenticates user and returns access token.
 ```
 
 ### Cookies Set
-| Cookie | HttpOnly | Expiry |
-|--------|----------|--------|
-| `refreshToken` | ✅ Yes | 7 days |
+
+| Cookie | HttpOnly | Expiry | Description |
+|--------|----------|--------|-------------|
+| `refreshToken` | ✅ Yes | 7 days | JWT refresh token for token rotation |
+
+### Rate Limiting
+
+- **Limit:** 3 requests per 15 minutes
+- **Response:** `429 Too Many Requests` if exceeded
 
 ### Error Responses
+
 | Status | Message |
 |--------|---------|
 | 400 | `invalid fields` |
 | 401 | `wrong credentails` |
 
 ### Frontend Notes
+
 - Store the `accessToken` in memory (not localStorage for security)
 - The `refreshToken` is automatically stored as an HttpOnly cookie
 - Include `accessToken` in Authorization header: `Bearer <accessToken>`
+- Login streak is automatically updated on successful login
 
 ---
 
@@ -136,14 +157,17 @@ Logs out the user and clears tokens.
 **Endpoint:** `POST /api/Auth/logout`
 
 ### Request Body
+
 None required.
 
 ### Cookies Required
+
 | Cookie | Description |
 |--------|-------------|
 | `refreshToken` | Will be cleared on logout |
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -152,6 +176,7 @@ None required.
 ```
 
 ### Cookies Cleared
+
 - `refreshToken`
 - `accessToken`
 
@@ -172,11 +197,13 @@ Sends a 4-digit OTP to the user's email.
 **Endpoint:** `POST /api/Auth/send-otp`
 
 ### Request Body
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `email` | string | ✅ Yes | Registered email address |
 
 ### Example Request
+
 ```json
 {
   "email": "john.doe@example.com"
@@ -184,6 +211,7 @@ Sends a 4-digit OTP to the user's email.
 ```
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -192,12 +220,15 @@ Sends a 4-digit OTP to the user's email.
 ```
 
 ### Cookies Set
+
 | Cookie | HttpOnly | Expiry | Description |
 |--------|----------|--------|-------------|
 | `otpCodeToken` | ✅ Yes | 15 minutes | Required for verify-otp and reset-password |
 
 ### Rate Limiting
-This endpoint is rate-limited. Too many requests will return `429 Too Many Requests`.
+
+- **Limit:** 3 requests per 15 minutes
+- **Response:** `429 Too Many Requests` if exceeded
 
 ---
 
@@ -208,16 +239,19 @@ Verifies the 4-digit OTP code sent to email.
 **Endpoint:** `POST /api/Auth/verify-otp`
 
 ### Request Body
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `otpCode` | string | ✅ Yes | 4-digit OTP from email |
 
 ### Cookies Required
+
 | Cookie | Description |
 |--------|-------------|
 | `otpCodeToken` | Set automatically by send-otp endpoint |
 
 ### Example Request
+
 ```json
 {
   "otpCode": "1234"
@@ -225,6 +259,7 @@ Verifies the 4-digit OTP code sent to email.
 ```
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -233,6 +268,7 @@ Verifies the 4-digit OTP code sent to email.
 ```
 
 ### Error Responses
+
 | Status | Message |
 |--------|---------|
 | 400 | `invalid token.` - Cookie missing or invalid |
@@ -240,7 +276,12 @@ Verifies the 4-digit OTP code sent to email.
 | 400 | `otp expired.` - OTP has expired (15 min limit) |
 | 400 | `invalid token do not match.` - Wrong OTP code |
 
+### Rate Limiting
+
+- **Limit:** 3 requests per 15 minutes
+
 ### Frontend Notes
+
 - OTP expires after **15 minutes**
 - After successful verification, proceed immediately to reset-password
 - The `otpCodeToken` cookie is still needed for the reset-password step
@@ -254,17 +295,20 @@ Sets a new password after OTP verification.
 **Endpoint:** `POST /api/Auth/reset-password`
 
 ### Request Body
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `password` | string | ✅ Yes | New password |
 | `confirmPassword` | string | ✅ Yes | Must match password |
 
 ### Cookies Required
+
 | Cookie | Description |
 |--------|-------------|
 | `otpCodeToken` | Set by send-otp, verified by verify-otp |
 
 ### Example Request
+
 ```json
 {
   "password": "NewSecurePass456",
@@ -273,6 +317,7 @@ Sets a new password after OTP verification.
 ```
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -281,9 +326,11 @@ Sets a new password after OTP verification.
 ```
 
 ### Cookies Cleared
+
 - `otpCodeToken`
 
 ### Error Responses
+
 | Status | Message |
 |--------|---------|
 | 400 | `All fields are required` |
@@ -291,25 +338,32 @@ Sets a new password after OTP verification.
 | 401 | `user is not verified` - OTP not verified yet |
 | 404 | `user not found` |
 
+### Rate Limiting
+
+- **Limit:** 3 requests per 15 minutes
+
 ---
 
 ## 5. Refresh Token
 
-Gets a new access token using the refresh token.
+Gets a new access token using the refresh token. Implements token rotation for security.
 
 **Endpoint:** `POST /api/Auth/refresh-token`
 
 ### Request Headers
+
 | Header | Value | Required |
 |--------|-------|----------|
 | `Authorization` | `Bearer <accessToken>` | ✅ Yes |
 
 ### Cookies Required
+
 | Cookie | Description |
 |--------|-------------|
 | `refreshToken` | Set during login |
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -318,138 +372,59 @@ Gets a new access token using the refresh token.
 ```
 
 ### Cookies Updated
+
 | Cookie | Description |
 |--------|-------------|
 | `refreshToken` | New refresh token (token rotation) |
 
 ### Error Responses
+
 | Status | Message |
 |--------|---------|
 | 401 | `refreshToken is missing` |
 | 403 | `refreshToken does not exist` |
 
 ### Frontend Notes
+
 - Call this endpoint when access token expires (15 min)
 - Implement automatic token refresh on 401 responses
 - The refresh token is rotated on each use for security
+- Access token expires in **15 minutes**
+- Refresh token expires in **7 days**
 
 ---
 
-## 6. Cookies Reference
-
-| Cookie Name | Set By | Cleared By | Expiry | Purpose |
-|-------------|--------|------------|--------|---------|
-| `refreshToken` | Login | Logout | 7 days | JWT refresh token |
-| `otpCodeToken` | Send OTP | Reset Password | 15 min | Password reset verification |
-
-### Cookie Settings (Production)
-```javascript
-{
-  httpOnly: true,      // Not accessible via JavaScript
-  secure: true,        // HTTPS only
-  sameSite: "strict"   // CSRF protection
-}
-```
-
----
-
-## 7. Error Handling
-
-### Standard Error Response Format
-```json
-{
-  "success": false,
-  "message": "Error description"
-}
-```
-
-### HTTP Status Codes
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created (Registration) |
-| 400 | Bad Request - Invalid input |
-| 401 | Unauthorized - Invalid credentials or token |
-| 403 | Forbidden - Valid token but no access |
-| 404 | Not Found |
-| 429 | Too Many Requests - Rate limited |
-| 500 | Server Error |
-
----
-
-## Quick Reference: Complete Password Reset Flow
+## Password Reset Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    PASSWORD RESET FLOW                          │
+│                    PASSWORD RESET FLOW                            │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. POST /api/Auth/send-otp                                     │
-│     Body: { "email": "user@example.com" }                       │
-│     → Sets otpCodeToken cookie                                  │
-│     → Sends 4-digit OTP to email                                │
-│                                                                 │
-│                         ↓                                       │
-│                                                                 │
-│  2. POST /api/Auth/verify-otp                                   │
-│     Body: { "otpCode": "1234" }                                 │
-│     Cookie: otpCodeToken (auto-sent)                            │
-│     → Verifies OTP                                              │
-│                                                                 │
-│                         ↓                                       │
-│                                                                 │
-│  3. POST /api/Auth/reset-password                               │
-│     Body: { "password": "new", "confirmPassword": "new" }       │
-│     Cookie: otpCodeToken (auto-sent)                            │
-│     → Updates password                                          │
-│     → Clears otpCodeToken cookie                                │
-│                                                                 │
+│                                                                   │
+│  1. POST /api/Auth/send-otp                                      │
+│     Body: { "email": "user@example.com" }                        │
+│     → Sets otpCodeToken cookie                                    │
+│     → Sends 4-digit OTP to email                                 │
+│                                                                   │
+│                         ↓                                         │
+│                                                                   │
+│  2. POST /api/Auth/verify-otp                                    │
+│     Body: { "otpCode": "1234" }                                  │
+│     Cookie: otpCodeToken (auto-sent)                              │
+│     → Verifies OTP                                               │
+│                                                                   │
+│                         ↓                                         │
+│                                                                   │
+│  3. POST /api/Auth/reset-password                                │
+│     Body: { "password": "new", "confirmPassword": "new" }         │
+│     Cookie: otpCodeToken (auto-sent)                              │
+│     → Updates password                                            │
+│     → Clears otpCodeToken cookie                                  │
+│                                                                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Frontend Implementation Tips
-
-### 1. Axios Configuration
-```javascript
-const api = axios.create({
-  baseURL: 'https://your-api.com/api/Auth',
-  withCredentials: true  // Required for cookies
-});
-```
-
-### 2. Token Storage
-```javascript
-// Store access token in memory, not localStorage
-let accessToken = null;
-
-// Set after login
-accessToken = response.data.accessToken;
-
-// Use in requests
-api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-```
-
-### 3. Auto Token Refresh
-```javascript
-api.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response?.status === 401) {
-      const { data } = await api.post('/refresh-token');
-      accessToken = data.accessToken;
-      error.config.headers['Authorization'] = `Bearer ${accessToken}`;
-      return api.request(error.config);
-    }
-    return Promise.reject(error);
-  }
-);
-```
-
----
-
-**Document Created:** December 2024  
-**API Version:** 1.0  
-**Contact:** Backend Team
+**See also:** [Common Reference](./common.md) for error handling, cookies, and frontend implementation tips.
 

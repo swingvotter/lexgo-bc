@@ -1,7 +1,8 @@
 const User = require("../../models/user.Model");
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const {generateAccessToken, generateRefreshToken} = require("../../utils/token") 
+const {generateAccessToken, generateRefreshToken} = require("../../utils/token"); 
+const updateLoginStreak = require("../../utils/streakUtils");
 
 const loginUser = async (req, res) => {
   try {
@@ -27,6 +28,8 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, message: "wrong credentails",doc:"meaning user has not registred or wrong credentials" });
     }
 
+    updateLoginStreak(user)
+
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
 
@@ -47,7 +50,7 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: `error:${error}` });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

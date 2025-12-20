@@ -84,6 +84,7 @@ const userSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
     trim: true,
+    default:null
   },
   // Number of AI questions asked by the user
   askAI: {
@@ -108,6 +109,11 @@ userSchema.index(
   { studentId: 1 },
   { unique: true, partialFilterExpression: { role: "student" } }
 );
+
+userSchema.index({ createdAt: -1 }); // For sorting
+userSchema.index({ email: 1 }); // For search
+userSchema.index({ role: 1 }); // For filtering
+userSchema.index({ firstName: 1, lastName: 1 }); // For search
 
 const user = mongoose.model("user", userSchema);
 module.exports = user;

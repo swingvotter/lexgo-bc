@@ -29,6 +29,8 @@ async function sendMail(to, subject, content) {
         ? process.env.BREVO_EMAIL
         : process.env.EMAIL_NAME;
 
+    console.log(`Sending email to: ${to}, from: ${fromEmail}, env: ${process.env.NODE_ENV}`);
+
     const info = await transporter.sendMail({
       from: `"LexGo" <${fromEmail}>`,
       to: to,
@@ -36,10 +38,10 @@ async function sendMail(to, subject, content) {
       text: content,
     });
 
-    console.log("Email sent:", info.messageId);
+    console.log("Email sent successfully:", info.messageId, info.response);
     return true;
   } catch (error) {
-    console.error("Email error:", error.message);
+    console.error("Email error:", error.message, error);
     throw error;
   }
 }
