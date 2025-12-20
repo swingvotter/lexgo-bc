@@ -3,7 +3,6 @@ const express = require("express");
 const app = express()
 const cookieParser = require("cookie-parser")
 const helmet = require("helmet")
-const sanitize = require("express-mongo-sanitize")
 const authMiddleware = require("./middleware/authMiddleware")
 const cors = require("cors")
 
@@ -21,7 +20,6 @@ app.use(helmet())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
-app.use(sanitize())
 
 // Trust proxy - required for Render, Heroku, etc.
 app.set('trust proxy', 1)
