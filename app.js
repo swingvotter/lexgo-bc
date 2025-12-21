@@ -8,7 +8,8 @@ const cors = require("cors")
 
 const AuthRouter = require("./routes/authRoutes")
 const AdminRouter = require("./routes/admin.Routes")
-const AIRouter = require("./routes/Ai.Routes")
+const AiRouter = require("./routes/Ai.Routes")
+const noteRouter = require("./routes/noteRoutes")
 
 
 app.use(cors({
@@ -26,8 +27,9 @@ app.set('trust proxy', 1)
 
 //ROUTES START HERE
 app.use("/api/Auth",AuthRouter)
-app.use("/api/Ai", AIRouter)
+app.use("/api/Ai", AiRouter)
 app.use("/api/Admin", AdminRouter)
+app.use("/api/Notes", noteRouter)
 
 app.get("/test",authMiddleware,(req,res)=>{
     res.send("hello world")
