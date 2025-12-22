@@ -1,59 +1,62 @@
 // sendMail.js
+
 require("dotenv").config();
-const nodemailer = require("nodemailer");
-
-// Gmail transporter (used in all environments)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_NAME,         // Your Gmail address
-    pass: process.env.EMAIL_APP_PASSWORD, // App password (required if 2FA is enabled)
-  },
-});
-
-// Verify SMTP connection
-transporter.verify((err, success) => {
-  if (err) {
-    console.error("SMTP ERROR:", err.response || err);
-  } else {
-    console.log("SMTP READY (Gmail)");
-  }
-});
+const axios = require("axios");
 
 /**
- * Send an email
+ * Send an email using Brevo API
  * @param {string} to - Recipient email
  * @param {string} subject - Email subject
- * @param {string} content - Email body (can include verification code)
+ * @param {string} content - Email content (plain text or HTML)
+ * @returns {Promise<boolean>}
  */
 async function sendMail(to, subject, content) {
   try {
-    console.log(`Sending email to: ${to}, from: ${process.env.EMAIL_NAME}`);
+    console.log(`Preparing to send email to: ${to}`);
 
+    // Extract verification code if present
     const verificationCode = content.match(/\d+/)?.[0] || "";
 
-    const info = await transporter.sendMail({
-      from: `"LexGo" <${process.env.EMAIL_NAME}>`,
-      to,
+    // Construct HTML email
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif">
+        <h2>LexGo Verification</h2>
+        <p>Your verification code:</p>
+        <h1>${verificationCode}</h1>
+        <p>This code expires in 15 minutes.</p>
+      </div>
+    `;
+
+    const emailData = {
+      sender: {
+        name: "LexGo",
+        email: process.env.BREVO_EMAIL, // Must be verified in Brevo
+      },
+      to: [
+        {
+          email: to,
+        },
+      ],
       subject,
-      text: content,
-      html: `
-        <div style="font-family: Arial, sans-serif">
-          <h2>LexGo Verification</h2>
-          <p>Your verification code:</p>
-          <h1>${verificationCode}</h1>
-          <p>This code expires in 15 minutes.</p>
-        </div>
-      `,
+      htmlContent,
+      textContent: content, // fallback plain text
+    };
+
+    const response = await axios.post("https://api.brevo.com/v3/smtp/email", emailData, {
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+      },
     });
 
-    console.log("Email sent successfully:", info.messageId, info.response || "No server response");
+    console.log("Email sent successfully via Brevo API:", response.data);
     return true;
   } catch (error) {
-    console.error("Email sending failed:");
-    console.error("Error code:", error.code || "N/A");
-    console.error("Response:", error.response || "N/A");
-    console.error(error);
+    if (error.response) {
+      console.error("Brevo API Error:", error.response.data);
+    } else {
+      console.error("Brevo API Request Failed:", error.message);
+    }
     throw error;
   }
 }
