@@ -22,6 +22,14 @@ const transporter = nodemailer.createTransport(
       }
 );
 
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("SMTP ERROR:", err);
+  } else {
+    console.log("SMTP READY");
+  }
+});
+
 async function sendMail(to, subject, content) {
   try {
     const fromEmail =
@@ -36,6 +44,14 @@ async function sendMail(to, subject, content) {
       to: to,
       subject: subject,
       text: content,
+      html: `
+    <div style="font-family: Arial, sans-serif">
+      <h2>LexGo Verification</h2>
+      <p>Your verification code:</p>
+      <h1>${content.match(/\d+/)?.[0]}</h1>
+      <p>This code expires in 15 minutes.</p>
+    </div>
+    `
     });
 
     console.log("Email sent successfully:", info.messageId, info.response);
