@@ -142,7 +142,7 @@ Different endpoints have different rate limits to prevent abuse and ensure fair 
 | Login | 3 requests | 15 minutes | `POST /api/Auth/login` |
 | OTP Operations | 3 requests | 15 minutes | `POST /api/Auth/send-otp`, `POST /api/Auth/verify-otp`, `POST /api/Auth/reset-password` |
 | AI Requests | 20 requests | 15 minutes | `POST /api/AI/ask-AI` |
-| General API | 100 requests | 15 minutes | `GET /api/Admin/users` and other general endpoints |
+| General API | 100 requests | 15 minutes | `GET /api/Admin/users`, Notes API endpoints, and other general endpoints |
 
 ### Rate Limit Response
 

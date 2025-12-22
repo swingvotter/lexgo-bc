@@ -9,16 +9,14 @@ const noteSchema = new mongoose.Schema(
       index: true,
     },
     title: {
-      type: String, 
-  required: true, 
-  maxlength: [200, "Title too long"],
-  trim: true
+      type: String,
+      required: true,
+      maxlength: [200, "Title too long"],
+      trim: true,
     },
     legalTopic: {
       type: String,
       required: [true, "legalTopic is a required field"],
-      maxlength: [100, "Legal topic cannot exceed 100 characters"],
-      trim: true,
     },
     importanceLevel: {
       type: String,

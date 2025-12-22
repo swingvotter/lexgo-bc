@@ -7,13 +7,14 @@
 
 ## Overview
 
-Welcome to the LexGo API documentation. This API provides endpoints for authentication, user management, AI interactions, and administrative functions.
+Welcome to the LexGo API documentation. This API provides endpoints for authentication, user management, AI interactions, notes management, and administrative functions.
 
 ## Base URLs
 
 - **Auth API:** `/api/Auth`
 - **AI API:** `/api/AI`
 - **Admin API:** `/api/Admin`
+- **Notes API:** `/api/Notes`
 
 ## Documentation Structure
 
@@ -22,7 +23,8 @@ This documentation is organized into separate files for easier navigation:
 1. **[Authentication API](./auth.md)** - User registration, login, logout, password reset, and token management
 2. **[AI API](./ai.md)** - AI interaction endpoints
 3. **[Admin API](./admin.md)** - Administrative endpoints for user management
-4. **[Common Reference](./common.md)** - Error handling, cookies, rate limiting, and frontend implementation tips
+4. **[Notes API](./notes.md)** - Create, read, update, and delete personal notes
+5. **[Common Reference](./common.md)** - Error handling, cookies, rate limiting, and frontend implementation tips
 
 ## Quick Start
 
@@ -61,7 +63,7 @@ Different endpoints have different rate limits:
 | Login | 3 requests | 15 minutes |
 | OTP Operations | 3 requests | 15 minutes |
 | AI Requests | 20 requests | 15 minutes |
-| General API | 100 requests | 15 minutes |
+| General API | 100 requests | 15 minutes | Notes API endpoints |
 
 ## Authentication
 
@@ -109,7 +111,8 @@ Most endpoints require authentication. The authentication flow:
 1. Start with [Authentication API](./auth.md) to register and login
 2. Review [Common Reference](./common.md) for error handling and best practices
 3. Explore [AI API](./ai.md) for AI interactions
-4. Check [Admin API](./admin.md) for administrative functions (admin only)
+4. Use [Notes API](./notes.md) to manage personal notes
+5. Check [Admin API](./admin.md) for administrative functions (admin only)
 
 ---
 

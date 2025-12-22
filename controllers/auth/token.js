@@ -4,7 +4,7 @@ const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../../utils/token");
-
+  
 const refreshTokenRotation = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
@@ -20,12 +20,8 @@ const refreshTokenRotation = async (req, res) => {
       process.env.REFRESH_TOKEN_SECRET
     );
 
-    console.log(decodeToken.id);
-    console.log(req.userInfo.id);
-    
     const user = await User.findById(decodeToken.id);
-    console.log(user._id.toString());
-
+    
     if (!user || user.refreshToken !== refreshToken) {
       return res
         .status(403)

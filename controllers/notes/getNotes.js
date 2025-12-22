@@ -1,12 +1,9 @@
 const Note = require("../../models/noteModel")
 const getPagination = require("../../utils/pagination")
 
-// Escape special regex characters to prevent ReDoS attacks
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 const getNotes = async (req, res) => {
   try {
-    const userId = req.userInfo?.id
+    const userId = req.userInfo.id
 
     if (!userId) {
       return res.status(401).json({
@@ -33,12 +30,11 @@ const getNotes = async (req, res) => {
       }
     }
 
-    // Search filter (title and content) - with ReDoS protection
+    // Search filter (title and content)
     if (req.query.search && typeof req.query.search === "string") {
       const searchTerm = req.query.search.trim()
-      if (searchTerm.length > 0 && searchTerm.length <= 100) {
-        const safeSearchTerm = escapeRegex(searchTerm)
-        const searchRegex = { $regex: safeSearchTerm, $options: "i" }
+      if (searchTerm.length > 0) {
+        const searchRegex = { $regex: searchTerm, $options: "i" }
         query.$or = [
           { title: searchRegex },
           { content: searchRegex },
