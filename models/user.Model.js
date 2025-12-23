@@ -98,11 +98,7 @@ const userSchema = new mongoose.Schema({
     tokenExpiry: { type: Date, default: null },     // Token expiration time
     isVerified:{type:Boolean,default:false}
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+},{ timestamps: true });
 
 // Enforce unique studentId only for users whose role is student
 userSchema.index(

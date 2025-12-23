@@ -10,7 +10,11 @@ const AuthRouter = require("./routes/authRoutes")
 const AdminRouter = require("./routes/admin.Routes")
 const AiRouter = require("./routes/Ai.Routes")
 const noteRouter = require("./routes/noteRoutes")
+const axios = require("axios")
+const chatGpt = require("./utils/chatGpt")
 
+
+chatGpt("briefly explain the constitution of ghana")
 
 app.use(cors({
     origin:true,
