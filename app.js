@@ -10,11 +10,7 @@ const AuthRouter = require("./routes/authRoutes")
 const AdminRouter = require("./routes/admin.Routes")
 const AiRouter = require("./routes/Ai.Routes")
 const noteRouter = require("./routes/noteRoutes")
-const axios = require("axios")
-const chatGpt = require("./utils/chatGpt")
-
-
-chatGpt("briefly explain the constitution of ghana")
+const caseRouter = require("./routes/caseRoutes")
 
 app.use(cors({
     origin:true,
@@ -34,9 +30,21 @@ app.use("/api/Auth",AuthRouter)
 app.use("/api/Ai", AiRouter)
 app.use("/api/Admin", AdminRouter)
 app.use("/api/Notes", noteRouter)
+app.use("/api/Cases", caseRouter)
 
 app.get("/test",authMiddleware,(req,res)=>{
     res.send("hello world")
+})
+
+const productSchema = require("./validators/createProd")
+
+app.post("/joi",(req,res)=>{
+    const {error,value} = productSchema.validate(req.body,{abortEarly:true,allowUnknown:false})
+    
+    if(error){
+        return res.status(400).json({message:"error from joi" + error.message})
+    }
+    return res.status(200).json({data:value})
 })
 
 module.exports = app

@@ -20,7 +20,7 @@ const caseSchema = new mongoose.Schema(
     parties: [
       {
         name: { type: String, required: true },
-        role: { type: String, enum: ["Plaintiff", "Defendant", "Appellant", "Respondent"] },
+        role: { type: String, enum: ["Appellant", "Respondent"] },
       },
     ],
 
