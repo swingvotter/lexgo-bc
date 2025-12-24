@@ -36,15 +36,5 @@ app.get("/test",authMiddleware,(req,res)=>{
     res.send("hello world")
 })
 
-const productSchema = require("./validators/createProd")
-
-app.post("/joi",(req,res)=>{
-    const {error,value} = productSchema.validate(req.body,{abortEarly:true,allowUnknown:false})
-    
-    if(error){
-        return res.status(400).json({message:"error from joi" + error.message})
-    }
-    return res.status(200).json({data:value})
-})
 
 module.exports = app

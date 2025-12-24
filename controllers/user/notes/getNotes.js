@@ -1,5 +1,5 @@
-const Note = require("../../models/noteModel")
-const getPagination = require("../../utils/pagination")
+const Note = require("../../../models/noteModel")
+const getPagination = require("../../../utils/pagination")
 
 const getNotes = async (req, res) => {
   try {

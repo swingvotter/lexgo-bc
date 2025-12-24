@@ -1,5 +1,5 @@
-const Case = require("../../models/casesModel");
-const createCaseSchema = require("../../validators/createCaseValidator");
+const Case = require("../../../models/casesModel");
+const createCaseSchema = require("../../../validators/caseValidators/createCaseValidator");
 
 const createCase = async (req, res) => {
   try {

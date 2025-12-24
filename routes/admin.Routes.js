@@ -3,7 +3,7 @@ const express = require("express")
 const router = express.Router()
 const authMiddleware = require("../middleware/authMiddleware")
 const adminMiddleware = require("../middleware/adminMiddleware") // Create this!
-const adminFindUsersHandler = require("../controllers/admin/fetchUsers")
+const adminFindUsersHandler = require("../controllers/admin/users/fetchUsers")
 const { apiLimiter } = require("../utils/rateLimiter")
 
 // Apply rate limiting, auth, and admin checks

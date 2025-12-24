@@ -1,6 +1,6 @@
 // controllers/admin/fetchUsers.js
-const User = require("../../models/user.Model")
-const getPagination = require("../../utils/pagination")
+const User = require("../../../models/user.Model")
+const getPagination = require("../../../utils/pagination")
 
 const adminFindUsersHandler = async (req, res) => {
   try {
