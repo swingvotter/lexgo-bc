@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Note = require("../../../models/noteModel");
+const Note = require("../../../models/users/noteModel");
 
 const getNote = async (req, res) => {
   try {

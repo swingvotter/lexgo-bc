@@ -1,4 +1,4 @@
-const Case = require("../../../models/casesModel");
+const Case = require("../../../models/admin/casesModel");
 const getPagination = require("../../../utils/pagination")
 
 const getAllCases = async (req, res) => {

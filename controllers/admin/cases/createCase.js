@@ -1,4 +1,4 @@
-const Case = require("../../../models/casesModel");
+const Case = require("../../../models/admin/casesModel");
 const createCaseSchema = require("../../../validators/caseValidators/createCaseValidator");
 
 const createCase = async (req, res) => {

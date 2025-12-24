@@ -86,10 +86,9 @@ const userSchema = new mongoose.Schema({
     trim: true,
     default:null
   },
-  // Number of AI questions asked by the user
-  askAI: {
-    type: Number,
-    default: 0,
+  askAiCount: {
+    type:Number,
+    default:0
   },
   passwordReset: {
     otp: { type: String, default: null },           // Hashed OTP
@@ -111,5 +110,5 @@ userSchema.index({ email: 1 }); // For search
 userSchema.index({ role: 1 }); // For filtering
 userSchema.index({ firstName: 1, lastName: 1 }); // For search
 
-const user = mongoose.model("user", userSchema);
+const user = mongoose.model("User", userSchema);
 module.exports = user;

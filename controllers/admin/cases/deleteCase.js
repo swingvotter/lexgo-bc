@@ -1,4 +1,4 @@
-const Case = require("../../../models/casesModel");
+const Case = require("../../../models/admin/casesModel");
 
 // Delete a case by ID
 const deleteCase = async (req, res) => {

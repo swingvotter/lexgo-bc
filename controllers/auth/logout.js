@@ -1,4 +1,4 @@
-const User = require("../../models/user.Model");
+const User = require("../../models/users/user.Model");
 const { safeVerifyToken } = require("../../utils/token");
 
 const logoutUser = async (req, res) => {
