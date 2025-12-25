@@ -13,47 +13,18 @@ const getCaseById = require("../controllers/admin/cases/getCase");
 const { apiLimiter } = require("../utils/rateLimiter");
 
 // Get all cases
-router.get(
-  "/",
-  authMiddleware,
-  apiLimiter,
-  adminMiddleware,
-  getAllCases
-);
+router.get("/", authMiddleware, apiLimiter, getAllCases);
 
 // Get single case
-router.get(
-  "/:id",
-  authMiddleware,
-  apiLimiter,
-  adminMiddleware,
-  getCaseById
-);
+router.get("/:id", authMiddleware, apiLimiter, getCaseById);
 
 // Create case
-router.post(
-  "/",
-  authMiddleware,
-  apiLimiter,
-  adminMiddleware,
-  createCase
-);
+router.post("/", authMiddleware, apiLimiter, adminMiddleware, createCase);
 
 // Delete case
-router.delete(
-  "/:id",
-  authMiddleware,
-  apiLimiter,
-  adminMiddleware,
-  deleteCase
-);
+router.delete("/:id", authMiddleware, apiLimiter, adminMiddleware, deleteCase);
 
 // Update case
-router.patch(
-  "/:id",
-  authMiddleware,
-  apiLimiter,
-  updateCase
-);
+router.patch("/:id", authMiddleware, apiLimiter, updateCase);
 
 module.exports = router;
