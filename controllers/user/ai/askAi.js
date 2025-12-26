@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const AiHistory = require("../../../models/users/aiHitory.model");
 const User = require("../../../models/users/user.Model");
-const chatGpt = require("../../../utils/chatGpt");
+const chatGpt = require("../../../utils/ai/chatGpt");
 
 const askAiSchema = Joi.object({
   question: Joi.string().max(2000).required(),
