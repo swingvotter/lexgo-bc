@@ -13,6 +13,13 @@ const noteRouter = require("./routes/noteRoutes");
 const caseRouter = require("./routes/caseRoutes");
 const userRouter = require("./routes/user.routes");
 
+app.use((req, res, next) => {
+  req.setTimeout(120000); // 2 minutes
+  res.setTimeout(120000);
+  next();
+});
+
+
 app.use(
   cors({
     origin: true,

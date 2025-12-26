@@ -8,6 +8,6 @@ const {AiLimiter} = require("../utils/rateLimiter")
 
 router.post("/ask",authMiddleware,AiLimiter,askAiHandler)
 router.get("/history",authMiddleware,AiLimiter,getAiHistoryHandler)
-router.post("/generate", authMiddleware, generateQuizHandler);
+router.post("/quiz", authMiddleware, generateQuizHandler);
 
 module.exports = router
