@@ -1,40 +1,77 @@
-
 const mongoose = require("mongoose");
 
-// Production-ready AI History Schema
+const questionSchema = new mongoose.Schema(
+  {
+    question: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 2000,
+    },
+
+    options: {
+      type: [String],
+      required: true,
+      validate: v => v.length >= 2,
+    },
+
+    correctAnswer: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+  },
+  { _id: false }
+);
+
 const quizSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // Every history must be linked to a user
-      index: true,    // Helps with queries by user
+      required: true,
+      index: true,
     },
-    question: {
+
+    topic: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 2000, // Prevent overly large questions
     },
-    answers: {
-      type: [String],
-      required: true,
-      trim: true,
-    },
-    correctAnswer: {
+
+    difficultyLevel: {
       type: String,
+      enum: ["easy", "medium", "hard"],
       required: true,
-      trim: true,
-      maxlength: 10000, // Prevent overly large responses
-    }
+    },
+
+    totalQuestions: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    questions: {
+      type: [questionSchema],
+      required: true,
+    },
+
+    score: {
+      type: Number,
+      default: 0,
+    },
+
+    completed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
-// Compound index for efficient sorting by user and creation date
 quizSchema.index({ userId: 1, createdAt: -1 });
 
-const Quiz = mongoose.model("Quiz",quizSchema) 
-module.exports = Quiz
+module.exports = mongoose.model("Quiz", quizSchema);

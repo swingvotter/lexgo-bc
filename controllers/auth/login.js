@@ -36,7 +36,7 @@ const loginUser = async (req, res) => {
     res.cookie("refreshToken",refreshToken,{
       httpOnly:true,
       secure:process.env.NODE_ENV === "production",
-      sameSite:"strict",
+      sameSite:"lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
@@ -50,7 +50,7 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "error::server error" });
   }
 };
 
