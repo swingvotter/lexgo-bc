@@ -1,6 +1,7 @@
 const app = require("./app")
 const connectDb = require("./config/db")
 const redis = require("./config/redis")
+const createQuizWorker = require("./workers/quizWorker")
 
 const port = process.env.PORT || 3001
 
@@ -12,6 +13,9 @@ redis.on("connect", () => {
 
 redis.on("ready", () => {
   console.log("Redis is ready to use!");
+  // Initialize quiz worker when Redis is ready
+  createQuizWorker();
+  console.log("Quiz worker initialized");
 });
 
 redis.on("error", (err) => {

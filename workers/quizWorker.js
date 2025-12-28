@@ -45,7 +45,7 @@ function createWorker() {
         questions,
       });
 
-      return quiz;
+      return { quizId: quiz._id.toString() };
     },
     {
       connection: redis,
