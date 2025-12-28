@@ -1,10 +1,17 @@
-const quizQueue = require("../../../queues/quizQueue");
-const Quiz = require("../../../models/users/quiz.Model");
+const quizQueue = require("../../../../queues/quizQueue");
+const Quiz = require("../../../../models/users/quiz.Model");
+const mongoose = require("mongoose");
 
 const getQuizStatusHandler = async (req, res) => {
   try {
     const { jobId } = req.params;
     const userId = req.userInfo.id; // from auth middleware
+    
+    // Ensure userId is ObjectId for query
+    let userIdObjectId = userId;
+    if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
+      userIdObjectId = new mongoose.Types.ObjectId(userId);
+    }
 
     if (!jobId) {
       return res.status(400).json({
@@ -39,12 +46,19 @@ const getQuizStatusHandler = async (req, res) => {
       // Fetch the quiz and verify it belongs to the user
       const quiz = await Quiz.findOne({
         _id: quizId,
-        userId,
+        userId: userIdObjectId,
       });
 
       if (!quiz) {
+        // Check if quiz exists but belongs to different user
+        const quizExists = await Quiz.findOne({ _id: quizId });
+        if (quizExists) {
+          return res.status(403).json({
+            message: "Access denied: Quiz belongs to another user",
+          });
+        }
         return res.status(404).json({
-          message: "Quiz not found or access denied",
+          message: "Quiz not found",
         });
       }
 

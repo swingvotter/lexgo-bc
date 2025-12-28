@@ -1,4 +1,4 @@
-const quizQueue = require("../../../queues/quizQueue");
+const quizQueue = require("../../../../queues/quizQueue");
 
 const generateQuizHandler = async (req, res) => {
   try {

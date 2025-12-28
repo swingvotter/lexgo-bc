@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { randomUUID } = require("crypto");
 
 const questionSchema = new mongoose.Schema(
   {
@@ -27,6 +28,10 @@ const questionSchema = new mongoose.Schema(
 
 const quizSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      default: () => randomUUID(),
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -65,6 +70,15 @@ const quizSchema = new mongoose.Schema(
     completed: {
       type: Boolean,
       default: false,
+    },
+
+    totalQuizzes: {
+      type: Number,
+      default: 0,
+    },
+    totalQuizzesScores: {
+      type: Number,
+      default: 0,
     },
   },
   {

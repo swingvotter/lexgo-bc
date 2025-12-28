@@ -34,7 +34,6 @@ function createWorker() {
         question: q.question,
         options: q.answers,
         correctAnswer: q.correctAnswer,
-        userAnswer: null,
       }));
 
       const quiz = await Quiz.create({
