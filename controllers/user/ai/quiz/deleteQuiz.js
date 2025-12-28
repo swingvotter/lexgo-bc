@@ -1,7 +1,7 @@
 const Quiz = require("../../../../models/users/quiz.Model");
 const mongoose = require("mongoose");
 
-const getQuizHandler = async (req, res) => {
+const deleteQuizHandler = async (req, res) => {
   try {
     const { quizId } = req.params;
     const userId = req.userInfo.id;
@@ -12,12 +12,18 @@ const getQuizHandler = async (req, res) => {
       });
     }
 
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized: login required",
+      });
+    }
+
     let userIdObjectId = userId;
     if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
       userIdObjectId = new mongoose.Types.ObjectId(userId);
     }
 
-    const quiz = await Quiz.findOne({
+    const quiz = await Quiz.findOneAndDelete({
       _id: quizId,
       userId: userIdObjectId,
     });
@@ -29,14 +35,13 @@ const getQuizHandler = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Quiz retrieved successfully",
-      quiz,
+      message: "Quiz deleted successfully",
     });
   } catch (error) {
-    console.error("Get quiz error:", error);
+    console.error("Delete quiz error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-module.exports = getQuizHandler;
+module.exports = deleteQuizHandler;
 
