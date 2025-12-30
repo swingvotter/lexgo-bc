@@ -30,11 +30,33 @@ function createWorker() {
         throw new Error("AI response missing questions array");
       }
 
-      const questions = parsed.questions.map((q) => ({
-        question: q.question,
-        options: q.answers,
-        correctAnswer: q.correctAnswer,
-      }));
+      const questions = parsed.questions.map((q) => {
+        // Prefer `options` (as specified in the prompt), fall back to `answers` if present
+        const options = Array.isArray(q.options)
+          ? q.options
+          : Array.isArray(q.answers)
+          ? q.answers
+          : [];
+
+        // Store the index of the correct answer (0, 1, or 2)
+        let correctAnswer = 0;
+        if (typeof q.correct_answer === "number" && q.correct_answer >= 0 && q.correct_answer <= 2) {
+          // AI returns index of the correct option
+          correctAnswer = q.correct_answer;
+        } else if (typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer <= 2) {
+          // Fallback if AI already provided the index
+          correctAnswer = q.correctAnswer;
+        }
+
+        const explanation = q.explanation || "";
+
+        return {
+          question: q.question,
+          options,
+          correctAnswer,
+          correctAnswExpl: explanation,
+        };
+      });
 
       const quiz = await Quiz.create({
         userId,

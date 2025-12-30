@@ -12,7 +12,7 @@ const adminFindUsersHandler = async (req, res) => {
     
     // Role filter (validate against allowed roles)
     if (req.query.role) {
-      const allowedRoles = ["student", "lecturer", "admin", "judge", "lawyer"];
+      const allowedRoles = ["student", "lecturer", "admin"];
       if (allowedRoles.includes(req.query.role)) {
         query.role = req.query.role;
       }

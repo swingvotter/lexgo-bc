@@ -17,6 +17,12 @@ const questionSchema = new mongoose.Schema(
     },
 
     correctAnswer: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 2,
+    },
+    correctAnswExpl: {
       type: String,
       required: true,
       trim: true,

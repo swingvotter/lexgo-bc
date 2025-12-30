@@ -8,7 +8,6 @@ const otpVerificationHandler = require("../controllers/auth/verifyOtp")
 const router = express.Router()
 const geoIpMiddleware = require("../middleware/geoIpMiddleware")
 const refreshTokenRotation = require("../controllers/auth/token")
-const authMiddleware = require("../middleware/authMiddleware")
 const {passwordLimiter,otpLimiter} = require("../utils/rateLimiter")
 
 

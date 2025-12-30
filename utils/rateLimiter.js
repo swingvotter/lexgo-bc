@@ -24,7 +24,7 @@ const otpLimiter = rateLimit({
 });
 
 const AiLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 15 minutes
+  windowMs: 24 * 60 * 60 * 1000, // 1 day 
   max: 20, // Limit each user to 20 requests per window
   message: "Too many AI requests. Please try again later.",
   standardHeaders: true,
