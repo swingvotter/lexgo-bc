@@ -1,11 +1,11 @@
 const Joi = require("joi");
 
 const userSchema = Joi.object({
-  firstName: Joi.string().trim().required(),
+  firstName: Joi.string().trim().required().min(3).max(15),
 
-  lastName: Joi.string().trim().required(),
+  lastName: Joi.string().trim().required().min(3).max(15),
 
-  otherName: Joi.string().trim().optional().allow(null),
+  otherName: Joi.string().trim().optional().allow(null).min(3).max(15),
 
   phoneNumber: Joi.string().trim().required(),
 

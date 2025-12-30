@@ -21,7 +21,7 @@ Respond ONLY with valid JSON containing a single field:
 Each question must contain:
 - question (string)
 - options (array of exactly 3 strings)
-- correct_answer (number: 0, 1, or 2 — index of the correct option)
+- correct_answer (string: "A", "B", or "C" — letter of the correct option, where A is first, B is second, C is third)
 - explanation (string) - A brief summary explanation of why the correct answer is correct
 
 Instructions:
@@ -31,7 +31,14 @@ Instructions:
 - correct_answer must be 100% mathematically, logically, or scientifically correct.
 - No guesswork or ambiguity.
 - Distractors must be plausible but incorrect.
-- Randomize correct_answer positions (0–2) and avoid patterns.
+
+CRITICAL: Randomization Requirements:
+- You MUST randomize the correct_answer letter ("A", "B", or "C") across ALL questions.
+- The correct answer must NOT follow any pattern (e.g., not all "A", not alternating, not sequential).
+- Distribute correct answers roughly evenly across letters "A", "B", and "C" throughout the quiz.
+- Each question should have a DIFFERENT random letter for the correct answer.
+- Use the randomization seed provided to ensure variety.
+
 - Avoid vague, misleading, or trick phrasing.
 - Never use "all of the above" or "none of the above".
 - Use formal academic language.

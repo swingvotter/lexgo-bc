@@ -38,12 +38,12 @@ function createWorker() {
           ? q.answers
           : [];
 
-        // Convert index (0, 1, 2) to letter (A, B, C)
+        // Use letter-based correct answer (A, B, or C)
         let correctAnswer = "A";
-        if (typeof q.correct_answer === "number" && q.correct_answer >= 0 && q.correct_answer <= 2) {
-          correctAnswer = String.fromCharCode(65 + q.correct_answer); // 65 is 'A'
-        } else if (typeof q.correctAnswer === "string") {
-          correctAnswer = q.correctAnswer;
+        if (typeof q.correct_answer === "string" && ["A", "B", "C"].includes(q.correct_answer.toUpperCase())) {
+          correctAnswer = q.correct_answer.toUpperCase();
+        } else if (typeof q.correctAnswer === "string" && ["A", "B", "C"].includes(q.correctAnswer.toUpperCase())) {
+          correctAnswer = q.correctAnswer.toUpperCase();
         }
 
         const explanation = q.explanation || "";
