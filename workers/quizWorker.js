@@ -38,13 +38,11 @@ function createWorker() {
           ? q.answers
           : [];
 
-        // Store the index of the correct answer (0, 1, or 2)
-        let correctAnswer = 0;
+        // Convert index (0, 1, 2) to letter (A, B, C)
+        let correctAnswer = "A";
         if (typeof q.correct_answer === "number" && q.correct_answer >= 0 && q.correct_answer <= 2) {
-          // AI returns index of the correct option
-          correctAnswer = q.correct_answer;
-        } else if (typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer <= 2) {
-          // Fallback if AI already provided the index
+          correctAnswer = String.fromCharCode(65 + q.correct_answer); // 65 is 'A'
+        } else if (typeof q.correctAnswer === "string") {
           correctAnswer = q.correctAnswer;
         }
 

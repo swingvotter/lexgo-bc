@@ -1,48 +1,32 @@
 const User = require("../../models/users/user.Model");
 const bcrypt = require("bcrypt");
+const registerUserSchema = require("../../validators/userValidators/registerUser");
 
 const registerUser = async (req, res) => {
   try {
     const detectedC = req.detectedCountry;
 
-    const {
-      firstName,
-      lastName,
-      otherName,
-      phoneNumber,
-      university,
-      acadamicLevel,
-      program,
-      email,
-      studentId,
-      password,
-      confirmPassword,
-      role,
-    } = req.body;
+    // Validate request body using Joi schema
+    const { error, value } = registerUserSchema.validate(
+      {
+        ...req.body,
+        detectedCountry: detectedC ?? req.body.detectedCountry,
+      },
+      { abortEarly: false,allowUnknown:false }
+    );
 
-    if (
-      !firstName ||
-      !lastName ||
-      !phoneNumber ||
-      !university ||
-      !acadamicLevel ||
-      !program ||
-      !email ||
-      !studentId ||
-      !password ||
-      !confirmPassword
-    ) {
+    if (error) {
       return res.status(400).json({
         success: false,
-        message: "invalid fields",
-        doc: "make sure all fields are correctly spelt and included",
+        message: "Validation failed",
+        errors: error.details.map((d) => ({
+          field: d.path.join("."),
+          message: d.message,
+        })),
       });
     }
 
-    if (password !== confirmPassword)
-      return res
-        .status(400)
-        .json({ success: false, message: "password do not match" });
+    const { email, password, confirmPassword, ...rest } = value;
 
     const existingUser = await User.findOne({ email });
 
@@ -55,18 +39,9 @@ const registerUser = async (req, res) => {
     const hashPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      firstName,
-      lastName,
-      otherName,
-      phoneNumber,
-      university,
-      acadamicLevel,
-      program,
+      ...rest,
       email,
-      studentId,
       password: hashPassword,
-      role,
-      detectedCountry: detectedC,
     });
 
     const safeUser = await User.findById(user._id).select("-password");

@@ -17,10 +17,9 @@ const questionSchema = new mongoose.Schema(
     },
 
     correctAnswer: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
-      max: 2,
+      trim: true,
     },
     correctAnswExpl: {
       type: String,
