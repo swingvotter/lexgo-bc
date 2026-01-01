@@ -267,3 +267,4 @@ Delete a quiz by ID.
 - A quiz can only be submitted once (check `completed` field)
 - `totalQuizzesScores` is the average percentage across all completed quizzes
 
+

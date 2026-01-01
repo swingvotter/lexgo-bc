@@ -40,3 +40,4 @@ const getQuizHandler = async (req, res) => {
 
 module.exports = getQuizHandler;
 
+

@@ -1,31 +1,28 @@
 const mongoose = require("mongoose");
 
-const courseSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
-  lecturer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
-    required: true,
-  },
-
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
-
-  // NEW: pending requests
-  pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
-
-  questions: [
-    {
-      text: String,
-      createdAt: { type: Date, default: Date.now },
+const courseSchema = new mongoose.Schema(
+  {
+    lecturerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
     },
-  ],
+    title: { type: String, required: true },
+    coursePublicImageId: { type: String },
+    courseImageUrl: { type: String },
+    category: { type: String, required: true },
+    courseCode: { type: String, required: true },
+    institution: { type: String, required: true },
+    level: { type: String, required: true },
+    description: { type: String, default: "" },
 
-  // NEW: course deadline
-  deadline: { type: Date, required: true },
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
 
-  createdAt: { type: Date, default: Date.now },
-});
+    // NEW: pending requests
+    pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+  },
+  { timestamps: true }
+);
 
-const course = mongoose.model("course", courseSchema);
-module.exports = course;
+const Course = mongoose.model("Course", courseSchema);
+module.exports = Course;

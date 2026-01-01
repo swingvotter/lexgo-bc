@@ -12,6 +12,7 @@ const AiRouter = require("./routes/Ai.Routes");
 const noteRouter = require("./routes/noteRoutes");
 const caseRouter = require("./routes/caseRoutes");
 const userRouter = require("./routes/user.routes");
+const courseRouter = require("./routes/course.route");
 
 app.use((req, res, next) => {
   req.setTimeout(120000); // 2 minutes
@@ -42,6 +43,7 @@ app.use("/api/Admin", AdminRouter);
 app.use("/api/Notes", noteRouter);
 app.use("/api/Cases", caseRouter);
 app.use("/api/User", userRouter);
+app.use("/api/Courses", courseRouter);
 
 app.get("/test", authMiddleware, (req, res) => {
   res.send("hello world");
