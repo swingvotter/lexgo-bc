@@ -50,12 +50,6 @@ const courseMaterialSchema = new Schema(
           {
             type: {
               type: String, 
-              enum: [
-                "Constitution",
-                "Act of Parliament",
-                "Subsidiary Enactment",
-                "Case Law"
-              ],
               required: true
             },
 

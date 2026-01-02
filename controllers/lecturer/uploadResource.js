@@ -6,13 +6,20 @@ const {
   uploadPdfBufferToCloudinary,
 } = require("../../utils/CloudinaryBufferUploader");
 const cloudinary = require("../../config/cloudinary");
-const pdfParse = require("pdf-parse")
+const pdfParse = require("pdf-parse");
+const removeNewlines = require("../../utils/newLineRemover");
 
 const uploadResourceHandler = async (req, res) => {
   try {
 
     const {courseId} = req.params
     
+    if (!courseId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "courseId is missing" });
+    }
+
     if (!req.file) {
       return res
         .status(404)
@@ -53,6 +60,7 @@ const uploadResourceHandler = async (req, res) => {
     });
 
     const data = await pdfParse(req.file.buffer)
+
     
     const newResource = await Resource.create({
       lecturerId,
@@ -63,8 +71,14 @@ const uploadResourceHandler = async (req, res) => {
       publicId: result.public_id,
       url: signedUrl, // store the signed URL instead
     });
+   
+    const updatedContent = removeNewlines(data.text)
 
-     await ResourceContent.create({resourceId:newResource._id,content:data.text})
+    await ResourceContent.create({
+      resourceId: newResource._id,
+      courseId: course._id,
+      content: updatedContent,
+    })
 
     return res.status(201).json({
       success: true,
