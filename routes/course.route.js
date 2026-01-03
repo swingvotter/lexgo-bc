@@ -8,11 +8,19 @@ const { apiLimiter } = require("../utils/rateLimiter");
 const uploadResourceHandler = require("../controllers/lecturer/uploadResource");
 const createCourseMaterialHandler = require("../controllers/lecturer/createCourseMaterial");
 const getAllResourceContentHandler = require("../controllers/lecturer/getAllContents");
+const getCourseMaterialsHandler = require("../controllers/lecturer/getCourseMaterials");
+const getCourseMaterialStatusHandler = require("../controllers/lecturer/courseMaterialStatus");
+const deleteCourseHandler = require("../controllers/lecturer/deleteCourse");
+const getCourseResourcesHandler = require("../controllers/lecturer/getCourseResources");
 
 // Get all cases
+router.get("/courseMaterial/status/:jobId", authMiddleware, apiLimiter, getCourseMaterialStatusHandler);
+router.get("/resourceContents/:courseId",authMiddleware,apiLimiter,getAllResourceContentHandler);
+router.get("/courseMaterials/:courseId", authMiddleware,apiLimiter, getCourseMaterialsHandler);
+router.get("/resources/:courseId", authMiddleware, apiLimiter, getCourseResourcesHandler);
 router.post("/", authMiddleware,upload.single("courseImage"),apiLimiter,createCourseHandler);
-router.get("/resourceContents/:courseId",apiLimiter,getAllResourceContentHandler);
-router.post("/courseMaterial/:courseId",apiLimiter,createCourseMaterialHandler);
 router.post("/resource/:courseId", authMiddleware,upload.single("resourceFile"),apiLimiter,uploadResourceHandler);
+router.post("/courseMaterial/:courseId",authMiddleware,apiLimiter,createCourseMaterialHandler);
+router.delete("/:courseId", authMiddleware, apiLimiter, deleteCourseHandler);
 
 module.exports = router;

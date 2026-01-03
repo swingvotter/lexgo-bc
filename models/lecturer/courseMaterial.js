@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
 
@@ -48,7 +48,7 @@ const courseMaterialSchema = new Schema(
         // 6. AUTHORITIES (simplified & flexible)
         authorities: [
           {
-            type: {
+             type: {
               type: String, 
               required: true
             },

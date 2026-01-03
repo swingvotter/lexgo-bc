@@ -2,6 +2,7 @@ const app = require("./app")
 const connectDb = require("./config/db")
 const redis = require("./config/redis")
 const createQuizWorker = require("./workers/quizWorker")
+const createCourseMaterialWorker = require("./workers/courseMaterialWorker")
 
 const port = process.env.PORT || 3001
 
@@ -16,6 +17,9 @@ redis.on("ready", () => {
   // Initialize quiz worker when Redis is ready
   createQuizWorker();
   console.log("Quiz worker initialized");
+  // Initialize course material worker
+  createCourseMaterialWorker();
+  console.log("Course material worker initialized");
 });
 
 redis.on("error", (err) => {

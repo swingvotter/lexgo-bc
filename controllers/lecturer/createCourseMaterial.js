@@ -1,4 +1,6 @@
 const ResourceContent = require("../../models/lecturer/resourceContent");
+const Course = require("../../models/lecturer/courses.Model");
+const courseMaterialQueue = require("../../queues/courseMaterialQueue");
 
 const createCourseMaterialHandler = async (req, res) => {
   try {
@@ -18,11 +20,27 @@ const createCourseMaterialHandler = async (req, res) => {
       .map((item) => item.content)
       .join("-----------new pdf-----------");
 
+    let lecturerId = req.userInfo?.id;
+    if (!lecturerId) {
+      // fallback: use course owner as lecturerId if request not authenticated
+      const course = await Course.findById(courseId).select("lecturerId");
+      if (!course) {
+        return res.status(404).json({ success: false, message: "course not found" });
+      }
+      lecturerId = course.lecturerId;
+    }
+
     // Add job to queue for background processing
+    const job = await courseMaterialQueue.add(
+      "create-course-material",
+      { courseId, lecturerId, combinedContent: allContentCombined },
+      { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
+    );
 
     return res.status(202).json({
       success: true,
       message: "job created successfully",
+      jobId: job.id,
     });
   } catch (error) {
     console.error("Get resource content error:", error);
