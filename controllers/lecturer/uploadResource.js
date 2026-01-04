@@ -9,28 +9,45 @@ const cloudinary = require("../../config/cloudinary");
 const pdfParse = require("pdf-parse");
 const removeNewlines = require("../../utils/newLineRemover");
 
+/**
+ * Upload a PDF resource to a course
+ * 
+ * @route POST /api/Courses/resource/:courseId
+ * @access Private - Requires authentication (lecturer only)
+ * 
+ * @description Uploads a PDF file to Cloudinary, extracts its text content,
+ * and stores both the file metadata and extracted content in the database.
+ * This content can later be used for AI-powered course material generation.
+ * 
+ * @param {string} req.params.courseId - The course ID to attach the resource to
+ * @param {Object} req.file - PDF file (required, handled by multer)
+ */
 const uploadResourceHandler = async (req, res) => {
   try {
+    const { courseId } = req.params;
 
-    const {courseId} = req.params
-    
+    // Validate courseId is provided
     if (!courseId) {
       return res
         .status(400)
         .json({ success: false, message: "courseId is missing" });
     }
 
+    // Validate file was uploaded
     if (!req.file) {
       return res
         .status(404)
         .json({ success: false, message: "file is missing" });
     }
 
+    // Get lecturer ID from auth middleware
     const lecturerId = req.userInfo.id;
 
+    // Verify lecturer exists
     const user = await User.findById(lecturerId);
 
-    const course = await Course.findOne({ _id:courseId, lecturerId });
+    // Verify course exists AND belongs to this lecturer (authorization check)
+    const course = await Course.findOne({ _id: courseId, lecturerId });
 
     if (!user) {
       return res
@@ -44,24 +61,26 @@ const uploadResourceHandler = async (req, res) => {
         .json({ success: false, message: "course not found" });
     }
 
+    // Upload PDF to Cloudinary as a private raw file
     const result = await uploadPdfBufferToCloudinary(req.file.buffer);
-
     if (!result) {
       return res
         .status(400)
         .json({ success: false, message: "course do not exist" });
     }
 
+    // Generate a signed URL for secure access (expires in 1 hour)
     const signedUrl = cloudinary.url(result.public_id, {
-      resource_type: "raw", // << important
-      type: "private",
+      resource_type: "raw",  // PDF is a raw file type
+      type: "private",       // Private upload requires signed URLs
       sign_url: true,
-      expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+      expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
     });
 
-    const data = await pdfParse(req.file.buffer)
+    // Extract text content from the PDF for AI processing
+    const data = await pdfParse(req.file.buffer);
 
-    
+    // Create resource record in database
     const newResource = await Resource.create({
       lecturerId,
       courseId: course._id,
@@ -69,16 +88,18 @@ const uploadResourceHandler = async (req, res) => {
       fileSize: req.file.size,
       fileExtension: req.file.mimetype,
       publicId: result.public_id,
-      url: signedUrl, // store the signed URL instead
+      url: signedUrl,
     });
-   
-    const updatedContent = removeNewlines(data.text)
 
+    // Clean up extracted text (remove excessive newlines)
+    const updatedContent = removeNewlines(data.text);
+
+    // Store extracted text content for AI course material generation
     await ResourceContent.create({
       resourceId: newResource._id,
       courseId: course._id,
       content: updatedContent,
-    })
+    });
 
     return res.status(201).json({
       success: true,
@@ -94,3 +115,4 @@ const uploadResourceHandler = async (req, res) => {
 };
 
 module.exports = uploadResourceHandler;
+

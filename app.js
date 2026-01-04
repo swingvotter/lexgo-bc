@@ -13,6 +13,7 @@ const noteRouter = require("./routes/noteRoutes");
 const caseRouter = require("./routes/caseRoutes");
 const userRouter = require("./routes/user.routes");
 const courseRouter = require("./routes/course.route");
+const enrollmentRouter = require("./routes/enrollment.routes");
 
 app.use((req, res, next) => {
   req.setTimeout(120000); // 2 minutes
@@ -44,6 +45,7 @@ app.use("/api/Notes", noteRouter);
 app.use("/api/Cases", caseRouter);
 app.use("/api/User", userRouter);
 app.use("/api/Courses", courseRouter);
+app.use("/api/Enrollments", enrollmentRouter);
 
 app.get("/test", authMiddleware, (req, res) => {
   res.send("hello world");

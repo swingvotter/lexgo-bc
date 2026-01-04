@@ -1,6 +1,18 @@
 const mongoose = require("mongoose");
 const Note = require("../../../models/users/noteModel");
 
+/**
+ * Delete a personal note
+ * 
+ * @route DELETE /api/user/notes/:id
+ * @access Private - Requires authentication
+ * 
+ * @description Permanently deletes a revision note. Ensures the note
+ * belongs to the authenticated user before deletion.
+ * 
+ * @param {string} req.params.id - The ID of the note to delete
+ * @returns {Object} Success message
+ */
 const deleteNote = async (req, res) => {
   try {
     const noteId = req.params.id;
@@ -28,6 +40,7 @@ const deleteNote = async (req, res) => {
       });
     }
 
+    // Find and delete the note, ensuring it belongs to the user
     const note = await Note.findOneAndDelete({ _id: noteId, userId: userId });
 
     if (!note) {

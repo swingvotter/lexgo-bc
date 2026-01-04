@@ -1,6 +1,18 @@
 const mongoose = require("mongoose");
 const Note = require("../../../models/users/noteModel");
 
+/**
+ * Get a single note by ID
+ * 
+ * @route GET /api/user/notes/:id
+ * @access Private - Requires authentication
+ * 
+ * @description Retrieves a specific revision note. Ensures the note
+ * belongs to the authenticated user.
+ * 
+ * @param {string} req.params.id - The ID of the note to retrieve
+ * @returns {Object} The requested note
+ */
 const getNote = async (req, res) => {
   try {
     const userId = req.userInfo?.id;
@@ -29,6 +41,7 @@ const getNote = async (req, res) => {
       });
     }
 
+    // Find note, ensuring it belongs to the user
     const note = await Note.findOne({
       _id: noteId,
       userId: userId,

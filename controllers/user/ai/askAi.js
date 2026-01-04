@@ -3,14 +3,29 @@ const AiHistory = require("../../../models/users/aiHitory.model");
 const User = require("../../../models/users/user.Model");
 const chatGpt = require("../../../utils/ai/chatGpt");
 
+// Validation schema for the request body
 const askAiSchema = Joi.object({
   question: Joi.string().max(2000).required(),
 });
 
+/**
+ * Ask AI a question
+ * 
+ * @route POST /api/user/ai/ask
+ * @access Private - Requires authentication
+ * 
+ * @description Sends a user's question to the OpenAI API via `chatGpt` utility,
+ * stores the question and answer in `AiHistory`, and increments the user's
+ * `askAiCount`.
+ * 
+ * @param {string} req.body.question - The question to ask the AI (max 2000 chars)
+ * @returns {Object} The AI's answer and updated Q&A history entry
+ */
 async function askAiHandler(req, res) {
   try {
-    const { error, value } = askAiSchema.validate(req.body,{abortEarly:false,allowUnknown:false});
-    
+    // Validate request body
+    const { error, value } = askAiSchema.validate(req.body, { abortEarly: false, allowUnknown: false });
+
     if (error) {
       return res.status(400).json({
         success: false,
@@ -19,36 +34,36 @@ async function askAiHandler(req, res) {
     }
 
     const { question } = value;
-    
-    const  userId  = req.userInfo.id;
+
+    const userId = req.userInfo.id;
 
     // Ensure user exists
-    const userExists = await User.exists({_id:userId} );
-    
+    const userExists = await User.exists({ _id: userId });
+
     if (!userExists) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
-    
-    // Ask AI
+
+    // Ask AI (OpenAI integration)
     const answer = await chatGpt(question);
-    
+
     if (!answer) {
       return res.status(400).json({
         success: false,
         message: "there was a problem getting answers from openAi",
       });
     }
-    // Save history
+    // Save history to database
     const aiEntry = await AiHistory.create({
-       userId,
+      userId,
       question,
       answer
     });
 
-    // Increment user ask count
+    // Increment user ask count for usage tracking/limits
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $inc: { askAiCount: 1 } },

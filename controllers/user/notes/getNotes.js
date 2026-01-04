@@ -1,6 +1,24 @@
 const Note = require("../../../models/users/noteModel")
 const getPagination = require("../../../utils/pagination")
 
+/**
+ * Get all notes with filtering and pagination
+ * 
+ * @route GET /api/user/notes
+ * @access Private - Requires authentication
+ * 
+ * @description Retrieves a paginated list of user notes. Supports filtering by
+ * legal topic, importance level, and keyword search. Also supports sorting.
+ * 
+ * @param {number} [req.query.page=1] - Page number
+ * @param {number} [req.query.limit=10] - Number of items per page
+ * @param {string} [req.query.legalTopic] - Filter by topic
+ * @param {string} [req.query.importanceLevel] - Filter by priority (Low, Medium, High Priority)
+ * @param {string} [req.query.search] - Search keyword for title, content, or topic
+ * @param {string} [req.query.sortBy] - Field to sort by
+ * @param {string} [req.query.sortOrder] - "asc" or "desc"
+ * @returns {Object} Paginated list of notes with metadata
+ */
 const getNotes = async (req, res) => {
   try {
     const userId = req.userInfo.id
@@ -18,11 +36,12 @@ const getNotes = async (req, res) => {
     // Build query - filter by user's notes only
     const query = { userId }
 
-    // Optional filters
+    // Optional filters: Legal Topic
     if (req.query.legalTopic) {
       query.legalTopic = req.query.legalTopic
     }
 
+    // Optional filters: Importance Level
     if (req.query.importanceLevel) {
       const allowedLevels = ["Low Priority", "Medium Priority", "High Priority"]
       if (allowedLevels.includes(req.query.importanceLevel)) {
@@ -30,7 +49,7 @@ const getNotes = async (req, res) => {
       }
     }
 
-    // Search filter (title and content)
+    // Search filter (title, content, legalTopic)
     if (req.query.search && typeof req.query.search === "string") {
       const searchTerm = req.query.search.trim()
       if (searchTerm.length > 0) {
@@ -43,7 +62,7 @@ const getNotes = async (req, res) => {
       }
     }
 
-    // Sort validation (prevent NoSQL injection)
+    // Sort validation (prevent NoSQL injection by allowing only specific fields)
     const allowedSortFields = ["createdAt", "updatedAt", "title", "importanceLevel", "legalTopic"]
     const sortBy = allowedSortFields.includes(req.query.sortBy)
       ? req.query.sortBy
@@ -51,7 +70,7 @@ const getNotes = async (req, res) => {
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1
     const sort = { [sortBy]: sortOrder }
 
-    // Execute queries in parallel
+    // Execute query and count total items in parallel
     const [notes, totalItems] = await Promise.all([
       Note.find(query)
         .sort(sort)

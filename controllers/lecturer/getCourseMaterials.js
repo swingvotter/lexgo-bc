@@ -1,5 +1,17 @@
 const CourseMaterial = require("../../models/lecturer/courseMaterial");
 
+/**
+ * Get all AI-generated materials for a course
+ * 
+ * @route GET /api/Courses/courseMaterials/:courseId
+ * @access Private - Requires authentication
+ * 
+ * @description Fetches all generated study materials (summaries, quizzes, etc.)
+ * for a specific course, sorted by most recent first.
+ * 
+ * @param {string} req.params.courseId - The course ID
+ * @returns {Object} Array of course materials
+ */
 const getCourseMaterialsHandler = async (req, res) => {
   try {
     const courseId = req.params?.courseId;
@@ -10,6 +22,7 @@ const getCourseMaterialsHandler = async (req, res) => {
       });
     }
 
+    // Fetch materials sorted by newest first
     const materials = await CourseMaterial.find({ courseId }).sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, data: materials });
@@ -20,3 +33,4 @@ const getCourseMaterialsHandler = async (req, res) => {
 };
 
 module.exports = getCourseMaterialsHandler;
+

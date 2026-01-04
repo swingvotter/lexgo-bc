@@ -268,3 +268,4 @@ Delete a quiz by ID.
 - `totalQuizzesScores` is the average percentage across all completed quizzes
 
 
+

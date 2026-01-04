@@ -11,7 +11,12 @@ const enrollmentSchema = mongoose.Schema({
       ref: "Course", // reference to courses in the Course collection
     },
   ],
-})
+  status:{
+    type:String,
+    enum:["pending","aproved","rejected"],
+    default:"pending"
+  }
+},{timestamps:true})
 
-const enrollment = mongoose.model("enrollment",enrollmentSchema)
-module.exports = enrollment
+const Enrollment = mongoose.model("enrollment",enrollmentSchema)
+module.exports = Enrollment

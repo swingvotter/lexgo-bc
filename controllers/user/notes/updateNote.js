@@ -1,6 +1,22 @@
 const mongoose = require("mongoose");
 const Note = require("../../../models/users/noteModel");
 
+/**
+ * Update an existing note
+ * 
+ * @route PATCH /api/user/notes/:id
+ * @access Private - Requires authentication
+ * 
+ * @description Updates the content or metadata of a specific note.
+ * Only provided fields will be updated. Ensures the note belongs to the user.
+ * 
+ * @param {string} req.params.id - The ID of the note to update
+ * @param {string} [req.body.title] - New title
+ * @param {string} [req.body.legalTopic] - New legal topic
+ * @param {string} [req.body.importanceLevel] - New priority
+ * @param {string} [req.body.content] - New content
+ * @returns {Object} The updated note object
+ */
 const updateNote = async (req, res) => {
   try {
     const userId = req.userInfo?.id;
@@ -39,13 +55,15 @@ const updateNote = async (req, res) => {
       });
     }
 
-    // Build update object with only provided fields
+    // Build update object with only provided fields (partial update)
     const updateFields = {};
     if (title) updateFields.title = title;
     if (legalTopic) updateFields.legalTopic = legalTopic;
     if (importanceLevel) updateFields.importanceLevel = importanceLevel;
     if (content) updateFields.content = content;
 
+    // Find and update the note, ensuring it belongs to the user
+    // { new: true } returns the document AFTER update
     const note = await Note.findOneAndUpdate(
       { _id: noteId, userId: userId },
       { $set: updateFields },
