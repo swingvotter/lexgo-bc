@@ -6,8 +6,8 @@ const {
   uploadPdfBufferToCloudinary,
 } = require("../../utils/CloudinaryBufferUploader");
 const cloudinary = require("../../config/cloudinary");
-const pdfParse = require("pdf-parse");
 const removeNewlines = require("../../utils/newLineRemover");
+const textExtractor = require("../../utils/textExtractor");
 
 /**
  * Upload a PDF resource to a course
@@ -78,7 +78,7 @@ const uploadResourceHandler = async (req, res) => {
     });
 
     // Extract text content from the PDF for AI processing
-    const data = await pdfParse(req.file.buffer);
+    const data = await textExtractor(req.file);
 
     // Create resource record in database
     const newResource = await Resource.create({
@@ -92,7 +92,7 @@ const uploadResourceHandler = async (req, res) => {
     });
 
     // Clean up extracted text (remove excessive newlines)
-    const updatedContent = removeNewlines(data.text);
+    const updatedContent = removeNewlines(data);
 
     // Store extracted text content for AI course material generation
     await ResourceContent.create({
