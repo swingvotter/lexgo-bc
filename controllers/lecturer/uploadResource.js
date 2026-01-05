@@ -6,6 +6,7 @@ const {
   uploadPdfBufferToCloudinary,
 } = require("../../utils/CloudinaryBufferUploader");
 const cloudinary = require("../../config/cloudinary");
+const cloudinaryUrlSigner = require("../../utils/cloudinaryUrlSigner");
 const removeNewlines = require("../../utils/newLineRemover");
 const textExtractor = require("../../utils/textExtractor");
 
@@ -70,12 +71,7 @@ const uploadResourceHandler = async (req, res) => {
     }
 
     // Generate a signed URL for secure access (expires in 1 hour)
-    const signedUrl = cloudinary.url(result.public_id, {
-      resource_type: "raw",  // PDF is a raw file type
-      type: "private",       // Private upload requires signed URLs
-      sign_url: true,
-      expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
-    });
+    const signedUrl = cloudinaryUrlSigner(result.public_id);
 
     // Extract text content from the PDF for AI processing
     const data = await textExtractor(req.file);
