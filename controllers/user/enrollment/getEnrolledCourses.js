@@ -8,14 +8,14 @@ const getEnrolledCourses = async (req, res) => {
     try {
         const userId = req.userInfo.id; // from auth middleware
 
-        // Find all approved enrollments for this user (note: schema uses "aproved")
+        // Find all approved enrollments for this user
         const enrollments = await Enrollment.find({
             userId,
-            status: "aproved",
-        }).populate("courses", "title courseCode category institution level description courseImageUrl");
+            status: "approved",
+        }).populate("course", "title courseCode category institution level description courseImageUrl");
 
-        // Flatten courses from all enrollments
-        const courses = enrollments.flatMap((enrollment) => enrollment.courses);
+        // Map courses from all enrollments
+        const courses = enrollments.map((enrollment) => enrollment.course);
 
         return res.status(200).json({
             success: true,

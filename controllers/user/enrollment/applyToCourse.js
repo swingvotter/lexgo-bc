@@ -23,7 +23,7 @@ const applyToCourse = async (req, res) => {
     // Check if user already has an enrollment for this course
     const existingEnrollment = await Enrollment.findOne({
       userId,
-      courses: courseId,
+      course: courseId,
     });
 
     if (existingEnrollment) {
@@ -36,7 +36,7 @@ const applyToCourse = async (req, res) => {
     // Create new enrollment with pending status
     const enrollment = await Enrollment.create({
       userId,
-      courses: [courseId],
+      course: courseId,
       status: "pending",
     });
 

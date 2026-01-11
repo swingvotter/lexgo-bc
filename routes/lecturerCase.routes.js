@@ -8,7 +8,11 @@ const createCase = require("../controllers/lecturer/cases/createCase");
 const deleteCase = require("../controllers/lecturer/cases/deleteCase");
 const getCases = require("../controllers/lecturer/cases/getCases");
 
-// Get all cases with pagination and filtering
+const getAllLecturerCases = require("../controllers/lecturer/cases/getAllLecturerCases");
+
+// Get all cases by lecturer
+router.get("/", authMiddleware, apiLimiter, getAllLecturerCases);
+
 // Get all cases with pagination and filtering for a specific course
 router.get("/:courseId", authMiddleware, apiLimiter, getCases);
 

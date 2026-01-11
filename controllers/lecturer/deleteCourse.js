@@ -2,6 +2,7 @@ const Course = require("../../models/lecturer/courses.Model");
 const Resource = require("../../models/lecturer/resource");
 const ResourceContent = require("../../models/lecturer/resourceContent");
 const CourseMaterial = require("../../models/lecturer/courseMaterial");
+const LecturerCase = require("../../models/lecturer/cases");
 const cloudinary = require("../../config/cloudinary");
 
 /**
@@ -62,10 +63,26 @@ const deleteCourseHandler = async (req, res) => {
       })
     );
 
-    // Step 3: Remove all related database entries
+    // Step 3: Find all cases and delete their files from Cloudinary
+    const cases = await LecturerCase.find({ courseId });
+    await Promise.all(
+      cases.map(async (c) => {
+        if (c.caseDocumentPublicId) {
+          try {
+            // Case documents (PDFs) are stored as private raw files
+            await cloudinary.uploader.destroy(c.caseDocumentPublicId, { resource_type: "raw", type: "private" });
+          } catch (err) {
+            console.error("Failed to delete case document from cloudinary:", err.message);
+          }
+        }
+      })
+    );
+
+    // Step 4: Remove all related database entries
     await Resource.deleteMany({ courseId });
     await ResourceContent.deleteMany({ courseId });
     await CourseMaterial.deleteMany({ courseId });
+    await LecturerCase.deleteMany({ courseId });
 
     // Step 4: Finally remove the course itself
     await Course.findByIdAndDelete(courseId);

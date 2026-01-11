@@ -3,6 +3,7 @@ const connectDb = require("./config/db")
 const redis = require("./config/redis")
 const createQuizWorker = require("./workers/quizWorker")
 const createCourseMaterialWorker = require("./workers/courseMaterialWorker")
+const createLecturerWorker = require("./workers/lecturerQuizWorker")
 
 const port = process.env.PORT || 3001
 
@@ -20,6 +21,9 @@ redis.on("ready", () => {
   // Initialize course material worker
   createCourseMaterialWorker();
   console.log("Course material worker initialized");
+  // Initialize lecturer quiz worker
+  createLecturerWorker();
+  console.log("Lecturer quiz worker initialized");
 });
 
 redis.on("error", (err) => {
@@ -30,7 +34,7 @@ redis.on("close", () => {
   console.log("Redis connection closed");
 });
 
-app.listen(port,()=>{
-    console.log(`server connected on port ${port}`);
-    connectDb()
+app.listen(port, () => {
+  console.log(`server connected on port ${port}`);
+  connectDb()
 })

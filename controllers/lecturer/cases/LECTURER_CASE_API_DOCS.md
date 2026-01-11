@@ -74,10 +74,48 @@ Retrieve a paginated list of cases for a specific course with optional filtering
     ```
 - **400 Bad Request**: Missing course ID.
 - **500 Server Error**: Internal server error.
+---
+
+## 3. Get All Cases (By Lecturer)
+Retrieve a paginated list of all cases created by the authenticated lecturer, filtered by query parameters.
+
+**Endpoint:** `GET /`
+**Authentication:** Required
+
+### Query Parameters
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `page` | `number` | `1` | Page number for pagination. |
+| `limit` | `number` | `10` | Number of items per page (max 100). |
+| `title` | `string` | - | Filter cases by title (case-insensitive search). |
+| `category` | `string` | - | Filter cases by category (case-insensitive search). |
+| `sortedBy` | `string` | `_id` | Field to sort by (e.g., `title`, `caseCode`). |
+| `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc`. |
+
+### Responses
+- **200 OK**: Returns list of cases with pagination metadata.
+    ```json
+    {
+      "success": true,
+      "count": 10,
+      "total": 50,
+      "totalPages": 5,
+      "currentPage": 1,
+      "data": [
+        {
+          "_id": "...",
+          "title": "Case Title",
+          "url": "https://res.cloudinary.com/... (Signed URL if document exists)",
+          ...
+        }
+      ]
+    }
+    ```
+- **500 Server Error**: Internal server error.
 
 ---
 
-## 3. Delete a Case
+## 4. Delete a Case
 Delete a specific case.
 
 **Endpoint:** `DELETE /:id`

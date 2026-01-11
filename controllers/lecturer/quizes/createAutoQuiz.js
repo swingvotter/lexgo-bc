@@ -1,0 +1,123 @@
+const LecturerQuiz = require("../../../models/lecturer/quizes");
+const lecturerQuizQueue = require("../../../queues/lecturerQuizQueue");
+const extractText = require("../../../utils/textExtractor");
+
+/**
+ * Create a new quiz automatically from document
+ * 
+ * @route POST /api/LecturerQuiz/create/auto
+ * @access Private (Lecturer)
+ */
+const createAutoQuiz = async (req, res) => {
+    try {
+        const {
+            courseId,
+            title,
+            description,
+            quizDuration,
+            quizStartTime,
+            attempts,
+            grade,
+            shuffleQuestions,
+            shuffleAnswers,
+            showScoresImmediately,
+            numberOfQuestions,
+            difficultyLevel
+        } = req.body;
+
+        const lecturerId = req.userInfo?.id;
+
+        if (!lecturerId || !courseId || !title || !quizDuration || !quizStartTime) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        // 1. Sanitize and Calculate Timings
+        const now = new Date();
+        let startTime = new Date(quizStartTime);
+
+        // If startTime is in the past or invalid, set it to 'now'
+        if (isNaN(startTime.getTime()) || startTime < now) {
+            startTime = now;
+        }
+
+        const durationInMs = parseInt(quizDuration) * 60 * 1000;
+        let endTime;
+
+        if (req.body.quizEndTime) {
+            endTime = new Date(req.body.quizEndTime);
+            // If endTime is before or equal to startTime, or invalid, calculate it based on duration
+            if (isNaN(endTime.getTime()) || endTime <= startTime) {
+                endTime = new Date(startTime.getTime() + durationInMs);
+            }
+        } else {
+            endTime = new Date(startTime.getTime() + durationInMs);
+        }
+
+        // 1. Validate File existence strictly
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Document file is required for automatic creation" });
+        }
+
+        // 2. Create the Quiz Entry
+        const newQuiz = await LecturerQuiz.create({
+            lecturerId,
+            courseId,
+            title,
+            description,
+            quizDuration,
+            quizStartTime: startTime,
+            quizEndTime: endTime,
+            attempts,
+            grade: typeof grade === 'string' ? JSON.parse(grade) : grade,
+            shuffleQuestions: shuffleQuestions === 'true' || shuffleQuestions === true,
+            shuffleAnswers: shuffleAnswers === 'true' || shuffleAnswers === true,
+            showScoresImmediately: showScoresImmediately === 'true' || showScoresImmediately === true,
+        });
+
+        // 3. Extract Text from File
+        let textContent = "";
+        try {
+            textContent = await extractText({
+                buffer: req.file.buffer,
+                originalname: req.file.originalname
+            });
+        } catch (err) {
+            console.error("Text extraction failed", err);
+            await LecturerQuiz.findByIdAndDelete(newQuiz._id); // Rollback
+            return res.status(500).json({ success: false, message: "Failed to extract text from document" });
+        }
+
+        if (!textContent || textContent.trim().length === 0) {
+            await LecturerQuiz.findByIdAndDelete(newQuiz._id);
+            return res.status(400).json({ success: false, message: "Extracted text is empty" });
+        }
+
+        // 4. Add to Worker Queue
+        const numQ = numberOfQuestions || 10;
+
+        const job = await lecturerQuizQueue.add("generate-quiz-from-doc", {
+            quizId: newQuiz._id,
+            lecturerId,
+            courseId,
+            textContent,
+            numQuestions: numQ,
+            difficultyLevel: difficultyLevel || "Mixed"
+        }, {
+            attempts: 3,
+            backoff: { type: "exponential", delay: 2000 }
+        });
+
+        return res.status(202).json({
+            success: true,
+            message: "Quiz creation started. Processing document...",
+            quizId: newQuiz._id,
+            jobId: job.id
+        });
+
+    } catch (error) {
+        console.error("Create Auto Quiz Error:", error);
+        return res.status(500).json({ success: false, message: "Server error creating quiz" });
+    }
+};
+
+module.exports = createAutoQuiz;
