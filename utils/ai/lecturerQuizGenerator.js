@@ -4,50 +4,69 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function lecturerQuizGenerator(textContent, numQuestions, difficultyLevel = "Mixed") {
-    const seed = Math.random().toString(36).substring(2, 10);
+async function lecturerQuizGenerator(
+    textContent,
+    numQuestions,
+    difficultyLevel = "Mixed"
+) {
+    const seed = crypto.randomUUID(); // Better entropy than Math.random
 
     const response = await client.chat.completions.create({
-        model: "gpt-4o-mini", // Using a capable model
+        model: "gpt-4o-mini",
+        temperature: 0.9, // 🔥 Controls creativity & variation
         messages: [
             {
                 role: "system",
                 content: `
 You are an expert educational content creator and quiz generator.
-Your task is to generate a quiz based strictly on the provided text content.
 
-Respond ONLY with valid JSON containing a single field:
-- questions (array of question objects)
+Respond ONLY with valid JSON:
+{
+  "questions": []
+}
 
-Each question must contain:
+STRICT REQUIREMENTS:
+- You MUST generate EXACTLY ${numQuestions} questions.
+- Not fewer.
+- Not more.
+- If the text is limited, vary phrasing, focus, or depth to still reach ${numQuestions}.
+
+Each question object MUST include:
 - question (string)
-- options (array of exactly 4 strings)
-- correct_answer (string: "A", "B", "C", or "D" — letter of the correct option)
-- explanation (string) - A brief explanation of why the answer is correct, referencing the provided text if possible.
+- options (array of EXACTLY 4 strings)
+- correct_answer ("A", "B", "C", or "D")
+- explanation (string)
 
-Instructions:
-- Use the provided text content as the source of truth.
-- Generate approximately ${numQuestions} questions (or as many as the content supports up to that number).
-- Difficulty: ${difficultyLevel}.
-- Questions must be clear, unambiguous, and factually accurate based on the text.
-- Distractors must be plausible.
-- Randomize the correct answer position (A, B, C, D).
-- Do NOT include any markdown formatting (like \`\`\`json), just the raw JSON object.
+ANTI-REPETITION RULES:
+- Avoid repeating the same question structure.
+- Do not reuse identical wording.
+- Focus on different details, implications, or interpretations.
+- Assume the student may have taken a similar quiz before.
 
-CRITICAL: Randomization Requirements:
-- You MUST randomize the correct_answer letter ("A", "B", "C", "D") across ALL questions.
-- Distribute correct answers roughly evenly.
+ANSWER RANDOMIZATION RULES:
+- Shuffle correct answers randomly.
+- No predictable patterns (A-B-C-D).
+- No letter should repeat more than twice consecutively.
+
+SOURCE RULE:
+- Use ONLY the provided text as the source of truth.
+- Do NOT invent facts outside the text.
+
+OUTPUT RULE:
+- No markdown.
+- No commentary.
+- Raw JSON only.
 `
             },
             {
                 role: "user",
                 content: `
-Text Content:
-${textContent.substring(0, 15000)} // Truncate to avoid context limit issues if necessary, though 4o-mini handles large context well.
+TEXT CONTENT:
+${textContent.substring(0, 15000)}
 
-Number of questions: ${numQuestions}
-Difficulty: ${difficultyLevel}
-Randomization seed: ${seed}
+TARGET QUESTIONS: ${numQuestions}
+DIFFICULTY: ${difficultyLevel}
+RANDOM SEED: ${seed}
 `
             }
         ],

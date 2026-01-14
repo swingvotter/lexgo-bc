@@ -11,24 +11,24 @@ const sendOtp = async (req, res) => {
 
     if (!email) {
       return res
-      .status(400)
-      .json({ success: false, message: "All fields are required" });
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
-    
+
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res
-      .status(400)
-      .json({ success: false, message: "If an account exists, an OTP has been sent." });
+        .status(400)
+        .json({ success: false, message: "If an account exists, an OTP has been sent." });
     }
 
     const rawToken = crypto.randomBytes(32).toString("hex");
 
     const hashedToken = crypto
-    .createHash("sha256")
-    .update(rawToken)
-    .digest("hex");
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
 
     const subject = "OTP Verification - LexGo";
     const otp = otpGenerator();
@@ -36,7 +36,7 @@ const sendOtp = async (req, res) => {
     const otpHash = await otpHasher(otp);
 
     // Fire and forget - don't block the response
-    sendMail(email, subject, content).catch(err => 
+    sendMail(email, subject, content, otp).catch(err =>
       console.error("Email send failed:", err.message)
     );
 
@@ -52,7 +52,7 @@ const sendOtp = async (req, res) => {
     user.passwordReset.token = hashedToken;
     user.passwordReset.tokenExpiry = Date.now() + 15 * 60 * 1000;
 
-    
+
     await user.save();
 
     return res.status(200).json({

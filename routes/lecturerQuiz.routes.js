@@ -34,6 +34,7 @@ router.get(
     authMiddleware,
     apiLimiter,
     getCourseQuizzes
+
 );
 
 // Get all quizzes created by a lecturer (paginated)

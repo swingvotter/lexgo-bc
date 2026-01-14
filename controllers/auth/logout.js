@@ -6,12 +6,10 @@ const logoutUser = async (req, res) => {
     const refreshToken = req.cookies?.refreshToken;
 
     if (refreshToken) {
-      const decoded = safeVerifyToken(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET
-      );
+      // Decode the token regardless of expiry to get the user ID for cleanup
+      const decoded = jwt.decode(refreshToken);
 
-      if (decoded) {
+      if (decoded && decoded.id) {
         await User.findByIdAndUpdate(decoded.id, {
           refreshToken: null,
         });
@@ -23,7 +21,7 @@ const logoutUser = async (req, res) => {
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     })
-    ;
+      ;
     res.clearCookie("accessToken", {
       httpOnly: true,
       sameSite: "strict",

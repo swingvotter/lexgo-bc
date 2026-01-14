@@ -36,18 +36,26 @@ async function askAiHandler(req, res) {
     const { question } = value;
 
     const userId = req.userInfo.id;
+    const AI_LIMIT = 50; // You can move this to an env variable later
 
-    // Ensure user exists
-    const userExists = await User.exists({ _id: userId });
+    // Fetch user and check count BEFORE the expensive AI call
+    const user = await User.findById(userId).select("askAiCount");
 
-    if (!userExists) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    // Ask AI (OpenAI integration)
+    if (user.askAiCount >= AI_LIMIT) {
+      return res.status(403).json({
+        success: false,
+        message: `You have reached your AI question limit of ${AI_LIMIT}.`,
+      });
+    }
+
+    // Ask AI (OpenAI integration) - only called if under limit
     const answer = await chatGpt(question);
 
     if (!answer) {
@@ -56,6 +64,7 @@ async function askAiHandler(req, res) {
         message: "there was a problem getting answers from openAi",
       });
     }
+
     // Save history to database
     const aiEntry = await AiHistory.create({
       userId,

@@ -4,7 +4,7 @@ const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../../utils/token");
-  
+
 const refreshTokenRotation = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
@@ -21,7 +21,7 @@ const refreshTokenRotation = async (req, res) => {
     );
 
     const user = await User.findById(decodeToken.id);
-    
+
     if (!user || user.refreshToken !== refreshToken) {
       return res
         .status(403)
@@ -36,6 +36,13 @@ const refreshTokenRotation = async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+    })
+
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -45,7 +52,7 @@ const refreshTokenRotation = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      accessToken: newAccessToken,
+      message: "token refreshed successfully",
     });
   } catch (error) {
     return res.status(401).json({ success: false, message: error.message });

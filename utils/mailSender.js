@@ -8,22 +8,20 @@ const axios = require("axios");
  * @param {string} to - Recipient email
  * @param {string} subject - Email subject
  * @param {string} content - Email content (plain text or HTML)
+ * @param {string} [otp] - Optional verification code
  * @returns {Promise<boolean>}
  */
-async function sendMail(to, subject, content) {
+async function sendMail(to, subject, content, otp = "") {
   try {
-    console.log(`Preparing to send email to: ${to}`);
-
-    // Extract verification code if present
-    const verificationCode = content.match(/\d+/)?.[0] || "";
-
-    // Construct HTML email
+    // Construct HTML email with explicit OTP if provided
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif">
-        <h2>LexGo Verification</h2>
-        <p>Your verification code:</p>
-        <h1>${verificationCode}</h1>
-        <p>This code expires in 15 minutes.</p>
+      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #333;">LexGo Verification</h2>
+        <p>This is your verification code:</p>
+        <h1 style="color: #4A90E2; font-size: 32px; letter-spacing: 5px;">${otp}</h1>
+        <p style="color: #777; font-size: 14px;">This code expires in 15 minutes.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="color: #999; font-size: 12px;">${content}</p>
       </div>
     `;
 
@@ -49,7 +47,7 @@ async function sendMail(to, subject, content) {
       },
     });
 
-    console.log("Email sent successfully via Brevo API:", response.data);
+
     return true;
   } catch (error) {
     if (error.response) {

@@ -12,7 +12,7 @@ const registerUser = async (req, res) => {
         ...req.body,
         detectedCountry: detectedC ?? req.body.detectedCountry,
       },
-      { abortEarly: false,allowUnknown:false }
+      { abortEarly: false, allowUnknown: false }
     );
 
     if (error) {

@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
-      unique: true, // DB-level guarantee
     },
 
     university: {
@@ -43,7 +43,6 @@ const userSchema = new mongoose.Schema(
 
     program: {
       type: String,
-      trim: true,
       enum: ["LL.B", "LL.M", "M.A", "PFD"],
       required: function () {
         return this.role === "student";
@@ -74,44 +73,43 @@ const userSchema = new mongoose.Schema(
       default: "student",
     },
 
-    onboardingCompleted: {
-      type: Boolean,
-      default: false,
+    // ✅ ALL USERS
+    lastActive: {
+      type: Date,
+      default: Date.now,
     },
 
+    // ✅ STUDENTS ONLY
     progress: {
       lessonsCompleted: { type: Number, default: 0 },
-      learningStreak: { type: Number, default: 0 },
-      lastActiveDate: { type: Date, default: Date.now },
+      learningStreak: { type: Number, default: 1 },
     },
-
+    refreshToken: { type: String, default: null },
     detectedCountry: {
       type: String,
-      trim: true,
       default: null,
-    },
-
-    refreshToken: {
-      type: String,
       trim: true,
-      default: null,
     },
-
     askAiCount: {
       type: Number,
       default: 0,
     },
-
-    passwordReset: {
-      otp: { type: String, default: null },
-      otpExpiry: { type: Date, default: null },
-      token: { type: String, default: null },
-      tokenExpiry: { type: Date, default: null },
-      isVerified: { type: Boolean, default: false },
-    },
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", function () {
+  if (this.role === "student") {
+    if (!this.progress) {
+      this.progress = {
+        lessonsCompleted: 0,
+        learningStreak: 0,
+      };
+    }
+  } else {
+    this.progress = undefined;
+  }
+});
 
 /* ===================== INDEXES ===================== */
 
