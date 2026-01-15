@@ -1,6 +1,6 @@
-const Course = require("../../models/lecturer/courses.Model");
-const User = require("../../models/users/user.Model");
-const { uploadImageBufferToCloudinary } = require("../../utils/CloudinaryBufferUploader");
+const Course = require("../../../models/lecturer/courses.Model");
+const User = require("../../../models/users/user.Model");
+const { uploadImageBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
 
 /**
  * Create a new course
@@ -83,10 +83,18 @@ const createCourseHandler = async (req, res) => {
         course: newCourse,
       });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "A course with this course code already exists",
+        error: "DuplicateCourseCode"
+      });
+    }
+
     console.error("Create course error:", error);
     return res
       .status(500)
-      .json({ success: false, message: "error::server error" });
+      .json({ success: false, message: "Server error during course creation" });
   }
 };
 

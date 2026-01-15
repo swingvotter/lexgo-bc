@@ -3,12 +3,12 @@ const bcrypt = require("bcrypt");
 
 const otpVerificationHandler = async (req, res) => {
   try {
-    
+
     const { otpCode } = req.body;
 
     const token = req.cookies.otpCodeToken;
-    
-    const user = await User.findOne({ "passwordReset.token":token });
+
+    const user = await User.findOne({ "passwordReset.token": token });
 
     if (!user) {
       return res.status(400).json({
@@ -25,31 +25,38 @@ const otpVerificationHandler = async (req, res) => {
     if (!otpCode) {
       return res.status(400).json({
         success: false,
-        message: "all fields is required",
+        message: "OTP code is required",
       });
     }
 
     if (!token) {
       return res.status(400).json({
         success: false,
-        message: "token is missing",
+        message: "Session token is missing",
       });
     }
-
 
     if (Date.now() > otpExpiry || Date.now() > tokenExpiry) {
       return res.status(400).json({
         success: false,
-        message: "otp expired.",
+        message: "OTP has expired.",
       });
     }
 
-    const isTokenMatch = await bcrypt.compare(otpCode, dbOtp);
+    if (!dbOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found for this session.",
+      });
+    }
+
+    // Ensure both inputs are strings to prevent bcrypt error
+    const isTokenMatch = await bcrypt.compare(String(otpCode), String(dbOtp));
 
     if (!isTokenMatch) {
       return res.status(400).json({
         success: false,
-        message: "invalid token do not match.",
+        message: "Invalid OTP code. Please try again.",
       });
     }
 

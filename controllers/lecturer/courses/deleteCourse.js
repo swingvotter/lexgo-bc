@@ -1,9 +1,9 @@
-const Course = require("../../models/lecturer/courses.Model");
-const Resource = require("../../models/lecturer/resource");
-const ResourceContent = require("../../models/lecturer/resourceContent");
-const CourseMaterial = require("../../models/lecturer/courseMaterial");
-const LecturerCase = require("../../models/lecturer/cases");
-const cloudinary = require("../../config/cloudinary");
+const Course = require("../../../models/lecturer/courses.Model");
+const Resource = require("../../../models/lecturer/resource");
+const ResourceContent = require("../../../models/lecturer/resourceContent");
+const CourseMaterial = require("../../../models/lecturer/courseMaterial");
+const LecturerCase = require("../../../models/lecturer/cases");
+const cloudinary = require("../../../config/cloudinary");
 
 /**
  * Delete a course and all its related resources

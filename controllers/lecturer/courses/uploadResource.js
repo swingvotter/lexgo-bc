@@ -1,14 +1,14 @@
-const User = require("../../models/users/user.Model");
-const Course = require("../../models/lecturer/courses.Model");
-const Resource = require("../../models/lecturer/resource");
-const ResourceContent = require("../../models/lecturer/resourceContent");
+const User = require("../../../models/users/user.Model");
+const Course = require("../../../models/lecturer/courses.Model");
+const Resource = require("../../../models/lecturer/resource");
+const ResourceContent = require("../../../models/lecturer/resourceContent");
 const {
   uploadPdfBufferToCloudinary,
-} = require("../../utils/CloudinaryBufferUploader");
-const cloudinary = require("../../config/cloudinary");
-const cloudinaryUrlSigner = require("../../utils/cloudinaryUrlSigner");
-const removeNewlines = require("../../utils/newLineRemover");
-const textExtractor = require("../../utils/textExtractor");
+} = require("../../../utils/CloudinaryBufferUploader");
+const cloudinary = require("../../../config/cloudinary");
+const cloudinaryUrlSigner = require("../../../utils/cloudinaryUrlSigner");
+const removeNewlines = require("../../../utils/newLineRemover");
+const textExtractor = require("../../../utils/textExtractor");
 
 /**
  * Upload a PDF resource to a course

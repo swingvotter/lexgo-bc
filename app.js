@@ -6,23 +6,19 @@ const helmet = require("helmet");
 const authMiddleware = require("./middleware/authMiddleware");
 const cors = require("cors");
 
-const AuthRouter = require("./routes/authRoutes");
+const AuthRouter = require("./routes/auth.routes");
 const AdminRouter = require("./routes/admin.Routes");
-const AiRouter = require("./routes/Ai.Routes");
-const noteRouter = require("./routes/noteRoutes");
-const caseRouter = require("./routes/caseRoutes");
+const AiRouter = require("./routes/Ai.routes");
+const noteRouter = require("./routes/note.routes");
+const caseRouter = require("./routes/case.routes");
 const userRouter = require("./routes/user.routes");
-const courseRouter = require("./routes/course.route");
+const courseRouter = require("./routes/course.routes");
 const enrollmentRouter = require("./routes/enrollment.routes");
 const lecturerCaseRouter = require("./routes/lecturerCase.routes");
 const lecturerQuizRouter = require("./routes/lecturerQuiz.routes");
 const studentQuizRouter = require("./routes/studentQuiz.routes");
 
-app.use((req, res, next) => {
-  req.setTimeout(120000); // 2 minutes
-  res.setTimeout(120000);
-  next();
-});
+
 
 
 app.use(

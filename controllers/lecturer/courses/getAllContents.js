@@ -1,4 +1,4 @@
-const ResourceContent = require("../../models/lecturer/resourceContent");
+const ResourceContent = require("../../../models/lecturer/resourceContent");
 
 /**
  * Get all resource contents for a course (concatenated)

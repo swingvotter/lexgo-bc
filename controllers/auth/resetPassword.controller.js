@@ -1,5 +1,5 @@
 const User = require("../../models/users/user.Model");
-const {passwordHasher} = require("../../utils/hashing")
+const { passwordHasher } = require("../../utils/hashing")
 
 const resetPassword = async (req, res) => {
   try {
@@ -21,23 +21,23 @@ const resetPassword = async (req, res) => {
 
     const token = req.cookies.otpCodeToken
 
-    const user = await User.findOne({"passwordReset.token":token})
+    const user = await User.findOne({ "passwordReset.token": token })
 
-    if(!user){
-        return res
+    if (!user) {
+      return res
         .status(404)
         .json({ success: false, message: "user not found" });
     }
 
-    if(!user.passwordReset.isVerified){
-        return res
+    if (!user.passwordReset.isVerified) {
+      return res
         .status(401)
         .json({ success: false, message: "user is not verified" });
     }
 
     const hashPassword = await passwordHasher(password)
     user.password = hashPassword
-    
+
     res.clearCookie("otpCodeToken");
 
     user.passwordReset.otp = null
@@ -48,7 +48,7 @@ const resetPassword = async (req, res) => {
 
     await user.save()
 
-     return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "password reset successfully",
     });

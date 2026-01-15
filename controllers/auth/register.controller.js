@@ -52,9 +52,26 @@ const registerUser = async (req, res) => {
       data: safeUser,
     });
   } catch (error) {
+    // Handle Mongoose duplicate key errors (E11000)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      let message = "A duplicate value was found";
+
+      if (field === "studentId") message = "A user with this Student ID already exists";
+      if (field === "email") message = "A user with this email address already exists";
+      if (field === "phoneNumber") message = "A user with this phone number already exists";
+
+      return res.status(409).json({
+        success: false,
+        message,
+        error: "DuplicateKeyError"
+      });
+    }
+
+    console.error("Registration error:", error);
     return res
       .status(500)
-      .json({ success: false, message: `error:: ${error.message}` });
+      .json({ success: false, message: "Internal server error during registration" });
   }
 };
 

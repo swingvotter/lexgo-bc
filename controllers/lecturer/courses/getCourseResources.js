@@ -1,5 +1,5 @@
-const Resource = require("../../models/lecturer/resource");
-const Course = require("../../models/lecturer/courses.Model");
+const Resource = require("../../../models/lecturer/resource");
+const Course = require("../../../models/lecturer/courses.Model");
 const mongoose = require("mongoose");
 
 /**

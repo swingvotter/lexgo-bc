@@ -1,4 +1,4 @@
-const CourseMaterial = require("../../models/lecturer/courseMaterial");
+const CourseMaterial = require("../../../models/lecturer/courseMaterial");
 
 /**
  * Get all AI-generated materials for a course

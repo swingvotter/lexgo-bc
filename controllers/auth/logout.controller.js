@@ -1,4 +1,5 @@
 const User = require("../../models/users/user.Model");
+const jwt = require("jsonwebtoken");
 const { safeVerifyToken } = require("../../utils/token");
 
 const logoutUser = async (req, res) => {

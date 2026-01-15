@@ -1,6 +1,6 @@
-const ResourceContent = require("../../models/lecturer/resourceContent");
-const Course = require("../../models/lecturer/courses.Model");
-const courseMaterialQueue = require("../../queues/courseMaterialQueue");
+const ResourceContent = require("../../../models/lecturer/resourceContent");
+const Course = require("../../../models/lecturer/courses.Model");
+const courseMaterialQueue = require("../../../queues/courseMaterialQueue");
 
 /**
  * Create AI-generated course materials from uploaded resources

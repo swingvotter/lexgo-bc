@@ -94,6 +94,13 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    passwordReset: {
+      otp: { type: String, default: null },
+      otpExpiry: { type: Date, default: null },
+      token: { type: String, default: null },
+      tokenExpiry: { type: Date, default: null },
+      isVerified: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );

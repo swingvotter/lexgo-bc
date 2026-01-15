@@ -1,5 +1,5 @@
-const courseMaterialQueue = require("../../queues/courseMaterialQueue");
-const CourseMaterial = require("../../models/lecturer/courseMaterial");
+const courseMaterialQueue = require("../../../queues/courseMaterialQueue");
+const CourseMaterial = require("../../../models/lecturer/courseMaterial");
 const mongoose = require("mongoose");
 
 /**
