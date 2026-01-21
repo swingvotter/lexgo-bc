@@ -27,6 +27,7 @@ const getCourseResourcesHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: "valid courseId is required" });
     }
 
+
     // Parse pagination parameters with sensible defaults
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);  // Cap at 100
@@ -47,13 +48,20 @@ const getCourseResourcesHandler = async (req, res) => {
       .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean();  // Return plain JS objects for better performance
+      .lean();
+
+    // Append download URL to each resource pointing to our proxy
+    const resourcesWithUrl = resources.map(resource => ({
+      ...resource,
+      downloadUrl: `/api/Courses/resource/download/${resource._id}`
+    }));
 
     return res.status(200).json({
       success: true,
       meta: { total, page, limit, pages: Math.ceil(total / limit) },
-      data: resources,
+      data: resourcesWithUrl,
     });
+
   } catch (error) {
     console.error("Get course resources error:", error);
     return res.status(500).json({ success: false, message: "Server error" });

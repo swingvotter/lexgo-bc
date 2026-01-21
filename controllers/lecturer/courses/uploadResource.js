@@ -70,10 +70,7 @@ const uploadResourceHandler = async (req, res) => {
         .json({ success: false, message: "course do not exist" });
     }
 
-    // Generate a signed URL for secure access (expires in 1 hour)
-    const signedUrl = cloudinaryUrlSigner(result.public_id);
-
-    // Extract text content from the PDF for AI processing
+    // Extract text content from the file for AI processing
     const data = await textExtractor(req.file);
 
     // Create resource record in database
@@ -84,8 +81,9 @@ const uploadResourceHandler = async (req, res) => {
       fileSize: req.file.size,
       fileExtension: req.file.mimetype,
       publicId: result.public_id,
-      url: signedUrl,
     });
+
+
 
     // Clean up extracted text (remove excessive newlines)
     const updatedContent = removeNewlines(data);

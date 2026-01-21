@@ -1,7 +1,7 @@
 # Authentication API Documentation
 
 **Base URL:** `/api/Auth`  
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 1. Register
 
-Creates a new user account.
+Creates a new user account. Implements localized country detection and role-based validation.
 
 **Endpoint:** `POST /api/Auth/register`
 
@@ -28,20 +28,21 @@ Creates a new user account.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `firstName` | string | ✅ Yes | User's first name |
-| `lastName` | string | ✅ Yes | User's last name |
+| `firstName` | string | ✅ Yes | User's first name (3-15 chars) |
+| `lastName` | string | ✅ Yes | User's last name (3-15 chars) |
 | `otherName` | string | ❌ No | User's other/middle name |
-| `phoneNumber` | string | ✅ Yes | User's phone number |
+| `phoneNumber` | string | ✅ Yes | User's phone number (+ or digits, 10-15 chars) |
 | `university` | string | ✅ Yes | User's university |
-| `acadamicLevel` | string | ✅ Yes | Academic level |
-| `program` | string | ✅ Yes | Must be one of: `LL.B`, `LL.M`, `M.A`, `PFD` |
+| `acadamicLevel`| string | ⚠️ Only Students | Required only if `role` is `student` |
+| `program` | string | ⚠️ Only Students | Must be one of: `LL.B`, `LL.M`, `M.A`, `PFD`. Required only if `role` is `student` |
+| `studentId` | string | ⚠️ Only Students | Required only if `role` is `student` (5-20 chars) |
 | `email` | string | ✅ Yes | User's email address |
-| `studentId` | string | ✅ Yes | Student ID (required for students) |
-| `password` | string | ✅ Yes | Password (min 8 characters recommended) |
+| `password` | string | ✅ Yes | Password (min 8 characters) |
 | `confirmPassword` | string | ✅ Yes | Must match password |
-| `role` | string | ❌ No | One of: `student`, `lecturer`, `admin`, `judge`, `lawyer`. Default: `student` |
+| `role` | string | ❌ No | One of: `student`, `lecturer`, `admin`. Default: `student` |
+| `detectedCountry` | string | ❌ No | Manually provide country or leave for auto-detection |
 
-### Example Request
+### Example Request (Student)
 
 ```json
 {
@@ -54,7 +55,8 @@ Creates a new user account.
   "email": "john.doe@example.com",
   "studentId": "STU123456",
   "password": "SecurePass123",
-  "confirmPassword": "SecurePass123"
+  "confirmPassword": "SecurePass123",
+  "role": "student"
 }
 ```
 
@@ -72,10 +74,9 @@ Creates a new user account.
     "role": "student",
     "progress": {
       "lessonsCompleted": 0,
-      "learningStreak": 0,
-      "lastActiveDate": "2024-12-01T00:00:00.000Z"
+      "learningStreak": 1
     },
-    "onboardingCompleted": false,
+    "detectedCountry": "Ghana",
     "createdAt": "2024-12-01T00:00:00.000Z"
   }
 }
@@ -83,17 +84,18 @@ Creates a new user account.
 
 ### Error Responses
 
-| Status | Message |
-|--------|---------|
-| 400 | `invalid fields` - Missing required fields |
-| 400 | `password do not match` |
-| 400 | `user already exist` |
+| Status | Message | Description |
+|--------|---------|-------------|
+| 400 | `Validation failed` | Returns an `errors` array with field-specific messages |
+| 409 | `A user with this Student ID already exists` | Conflict: studentId already taken |
+| 409 | `A user with this email address already exists` | Conflict: email already taken |
+| 409 | `A user with this phone number already exists` | Conflict: phoneNumber already taken |
 
 ---
 
 ## 2. Login
 
-Authenticates user and returns access token. Also updates login streak.
+Authenticates user and returns access/refresh tokens as HttpOnly cookies. Updates login streak.
 
 **Endpoint:** `POST /api/Auth/login`
 
@@ -118,8 +120,7 @@ Authenticates user and returns access token. Also updates login streak.
 ```json
 {
   "success": true,
-  "message": "user login successfully",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "message": "user login successfully"
 }
 ```
 
@@ -127,7 +128,8 @@ Authenticates user and returns access token. Also updates login streak.
 
 | Cookie | HttpOnly | Expiry | Description |
 |--------|----------|--------|-------------|
-| `refreshToken` | ✅ Yes | 7 days | JWT refresh token for token rotation |
+| `accessToken` | ✅ Yes | 15 mins | JWT access token |
+| `refreshToken` | ✅ Yes | 7 days | JWT refresh token for session maintenance |
 
 ### Rate Limiting
 
@@ -136,35 +138,24 @@ Authenticates user and returns access token. Also updates login streak.
 
 ### Error Responses
 
-| Status | Message |
-|--------|---------|
-| 400 | `invalid fields` |
-| 401 | `wrong credentails` |
+| Status | Message | Doc Hint |
+|--------|---------|----------|
+| 400 | `invalid fields` | `make sure all fields are correctly spelt and included` |
+| 401 | `wrong credentails` | `meaning user has not registred or wrong credentials` |
 
 ### Frontend Notes
 
-- Store the `accessToken` in memory (not localStorage for security)
-- The `refreshToken` is automatically stored as an HttpOnly cookie
-- Include `accessToken` in Authorization header: `Bearer <accessToken>`
-- Login streak is automatically updated on successful login
+- **Credentials:** Set `withCredentials: true` in your Axios/Fetch config to allow cookie handling.
+- **Tokens:** You no longer need to store tokens in localStorage. The browser handles them automatically.
+- **Auto-Detection:** The server uses GeoIP to detect the user's country on login and registration.
 
 ---
 
 ## 3. Logout
 
-Logs out the user and clears tokens.
+Logs out the user and clears all tokens.
 
 **Endpoint:** `POST /api/Auth/logout`
-
-### Request Body
-
-None required.
-
-### Cookies Required
-
-| Cookie | Description |
-|--------|-------------|
-| `refreshToken` | Will be cleared on logout |
 
 ### Success Response (200)
 
@@ -202,14 +193,6 @@ Sends a 4-digit OTP to the user's email.
 |-------|------|----------|-------------|
 | `email` | string | ✅ Yes | Registered email address |
 
-### Example Request
-
-```json
-{
-  "email": "john.doe@example.com"
-}
-```
-
 ### Success Response (200)
 
 ```json
@@ -225,11 +208,6 @@ Sends a 4-digit OTP to the user's email.
 |--------|----------|--------|-------------|
 | `otpCodeToken` | ✅ Yes | 15 minutes | Required for verify-otp and reset-password |
 
-### Rate Limiting
-
-- **Limit:** 3 requests per 15 minutes
-- **Response:** `429 Too Many Requests` if exceeded
-
 ---
 
 ### 4.2 Verify OTP
@@ -244,20 +222,6 @@ Verifies the 4-digit OTP code sent to email.
 |-------|------|----------|-------------|
 | `otpCode` | string | ✅ Yes | 4-digit OTP from email |
 
-### Cookies Required
-
-| Cookie | Description |
-|--------|-------------|
-| `otpCodeToken` | Set automatically by send-otp endpoint |
-
-### Example Request
-
-```json
-{
-  "otpCode": "1234"
-}
-```
-
 ### Success Response (200)
 
 ```json
@@ -271,20 +235,10 @@ Verifies the 4-digit OTP code sent to email.
 
 | Status | Message |
 |--------|---------|
-| 400 | `invalid token.` - Cookie missing or invalid |
-| 400 | `all fields is required` |
-| 400 | `otp expired.` - OTP has expired (15 min limit) |
-| 400 | `invalid token do not match.` - Wrong OTP code |
-
-### Rate Limiting
-
-- **Limit:** 3 requests per 15 minutes
-
-### Frontend Notes
-
-- OTP expires after **15 minutes**
-- After successful verification, proceed immediately to reset-password
-- The `otpCodeToken` cookie is still needed for the reset-password step
+| 400 | `invalid token.` |
+| 400 | `OTP code is required` |
+| 400 | `OTP has expired.` |
+| 400 | `Invalid OTP code. Please try again.` |
 
 ---
 
@@ -292,7 +246,7 @@ Verifies the 4-digit OTP code sent to email.
 
 Sets a new password after OTP verification.
 
-**Endpoint:** `POST /api/Auth/reset-password`
+**Endpoint:** `PATCH /api/Auth/reset-password`
 
 ### Request Body
 
@@ -300,21 +254,6 @@ Sets a new password after OTP verification.
 |-------|------|----------|-------------|
 | `password` | string | ✅ Yes | New password |
 | `confirmPassword` | string | ✅ Yes | Must match password |
-
-### Cookies Required
-
-| Cookie | Description |
-|--------|-------------|
-| `otpCodeToken` | Set by send-otp, verified by verify-otp |
-
-### Example Request
-
-```json
-{
-  "password": "NewSecurePass456",
-  "confirmPassword": "NewSecurePass456"
-}
-```
 
 ### Success Response (200)
 
@@ -329,32 +268,13 @@ Sets a new password after OTP verification.
 
 - `otpCodeToken`
 
-### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 400 | `All fields are required` |
-| 400 | `Passwords do not match` |
-| 401 | `user is not verified` - OTP not verified yet |
-| 404 | `user not found` |
-
-### Rate Limiting
-
-- **Limit:** 3 requests per 15 minutes
-
 ---
 
 ## 5. Refresh Token
 
-Gets a new access token using the refresh token. Implements token rotation for security.
+Gets a new set of access and refresh tokens using token rotation.
 
 **Endpoint:** `POST /api/Auth/refresh-token`
-
-### Request Headers
-
-| Header | Value | Required |
-|--------|-------|----------|
-| `Authorization` | `Bearer <accessToken>` | ✅ Yes |
 
 ### Cookies Required
 
@@ -367,30 +287,16 @@ Gets a new access token using the refresh token. Implements token rotation for s
 ```json
 {
   "success": true,
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "message": "token refreshed successfully"
 }
 ```
 
-### Cookies Updated
+### Cookies Updated (Rotation)
 
 | Cookie | Description |
 |--------|-------------|
-| `refreshToken` | New refresh token (token rotation) |
-
-### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 401 | `refreshToken is missing` |
-| 403 | `refreshToken does not exist` |
-
-### Frontend Notes
-
-- Call this endpoint when access token expires (15 min)
-- Implement automatic token refresh on 401 responses
-- The refresh token is rotated on each use for security
-- Access token expires in **15 minutes**
-- Refresh token expires in **7 days**
+| `accessToken` | New short-lived access token |
+| `refreshToken` | New refresh token (replaces the old one) |
 
 ---
 
@@ -412,10 +318,11 @@ Gets a new access token using the refresh token. Implements token rotation for s
 │     Body: { "otpCode": "1234" }                                  │
 │     Cookie: otpCodeToken (auto-sent)                              │
 │     → Verifies OTP                                               │
+│     → Sets isVerified flag in DB                                 │
 │                                                                   │
 │                         ↓                                         │
 │                                                                   │
-│  3. POST /api/Auth/reset-password                                │
+│  3. PATCH /api/Auth/reset-password                               │
 │     Body: { "password": "new", "confirmPassword": "new" }         │
 │     Cookie: otpCodeToken (auto-sent)                              │
 │     → Updates password                                            │
@@ -426,5 +333,4 @@ Gets a new access token using the refresh token. Implements token rotation for s
 
 ---
 
-**See also:** [Common Reference](./common.md) for error handling, cookies, and frontend implementation tips.
-
+**See also:** [Common Reference](./common.md) for global error handling and frontend implementation tips.

@@ -14,6 +14,7 @@ const deleteQuiz = require("../controllers/lecturer/quizes/deleteQuiz");
 router.post(
     "/create/manual",
     authMiddleware,
+    lecturerMiddleware,
     apiLimiter,
     upload.none(),
     createManualQuiz
@@ -23,6 +24,7 @@ router.post(
 router.post(
     "/create/auto",
     authMiddleware,
+    lecturerMiddleware,
     apiLimiter,
     upload.single("file"),
     createAutoQuiz
@@ -32,6 +34,7 @@ router.post(
 router.get(
     "/course/:courseId",
     authMiddleware,
+    lecturerMiddleware,
     apiLimiter,
     getCourseQuizzes
 
@@ -41,6 +44,7 @@ router.get(
 router.get(
     "/my-quizzes",
     authMiddleware,
+    lecturerMiddleware,
     apiLimiter,
     getLecturerQuizzes
 );
@@ -49,9 +53,11 @@ router.get(
 router.delete(
     "/:quizId",
     authMiddleware,
+    lecturerMiddleware,
     apiLimiter,
     deleteQuiz
 );
+
 
 
 module.exports = router;

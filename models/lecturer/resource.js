@@ -12,14 +12,14 @@ const resourceSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
-    fileName:{type:String},
-    fileExtension:{type:String},
-    fileSize:{type:String,required:true},
-    publicId:{type:String,required:true},
-    url:{type:String,required:true},
+    fileName: { type: String },
+    fileExtension: { type: String },
+    fileSize: { type: String, required: true },
+    publicId: { type: String, required: true },
   },
   { timestamps: true }
 );
+
 
 const Resource = mongoose.model("Resource", resourceSchema);
 module.exports = Resource;

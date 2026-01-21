@@ -7,8 +7,8 @@ const authMiddleware = require("./middleware/authMiddleware");
 const cors = require("cors");
 
 const AuthRouter = require("./routes/auth.routes");
-const AdminRouter = require("./routes/admin.routes");
-const AiRouter = require("./routes/ai.routes");
+const AdminRouter = require("./routes/admin.Routes");
+const AiRouter = require("./routes/Ai.routes");
 const noteRouter = require("./routes/note.routes");
 const caseRouter = require("./routes/case.routes");
 const userRouter = require("./routes/user.routes");
@@ -17,8 +17,6 @@ const enrollmentRouter = require("./routes/enrollment.routes");
 const lecturerCaseRouter = require("./routes/lecturer_case.routes");
 const lecturerQuizRouter = require("./routes/lecturer_quiz.routes");
 const studentQuizRouter = require("./routes/student_quiz.routes");
-
-
 
 
 app.use(
