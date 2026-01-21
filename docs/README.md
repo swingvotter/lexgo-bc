@@ -24,7 +24,9 @@ This documentation is organized into separate files for easier navigation:
 2. **[AI API](./ai.md)** - AI interaction endpoints
 3. **[Admin API](./admin.md)** - Administrative endpoints for user management
 4. **[Notes API](./notes.md)** - Create, read, update, and delete personal notes
-5. **[Common Reference](./common.md)** - Error handling, cookies, rate limiting, and frontend implementation tips
+5. **[Cases API](./cases.md)** - Manage and search legal cases
+6. **[Common Reference](./common.md)** - Error handling, cookies, rate limiting, and frontend implementation tips
+
 
 ## Quick Start
 

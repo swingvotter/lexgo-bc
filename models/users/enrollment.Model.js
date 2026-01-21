@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const enrollmentSchema = mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user"
+    ref: "User"
   },
   course: {
     type: mongoose.Schema.Types.ObjectId,

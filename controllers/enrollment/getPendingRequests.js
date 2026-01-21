@@ -1,6 +1,8 @@
 const Enrollment = require("../../models/users/enrollment.Model");
 const Course = require("../../models/lecturer/courses.Model");
+const User = require("../../models/users/user.Model");
 const mongoose = require("mongoose");
+
 
 /**
  * Get pending enrollment requests for a specific course
@@ -49,8 +51,9 @@ const getPendingRequests = async (req, res) => {
             course: courseId,
             status: "pending",
         })
-            .populate("userId", "username email firstName lastName")   // Include student info
+            .populate("userId", "email firstName lastName")   // Include student info
             .populate("course", "title courseCode"); // Include course info
+
 
         return res.status(200).json({
             success: true,

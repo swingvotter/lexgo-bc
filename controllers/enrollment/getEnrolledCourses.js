@@ -1,4 +1,6 @@
 const Enrollment = require("../../models/users/enrollment.Model");
+const Course = require("../../models/lecturer/courses.Model");
+
 
 /**
  * Get all enrolled (approved) courses for the authenticated student
