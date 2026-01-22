@@ -1,11 +1,12 @@
 const LecturerQuiz = require("../../../models/lecturer/quizes");
+const checkCourseAccess = require("../../../utils/checkCourseAccess");
 
 
 /**
  * Create a new quiz manually
  * 
  * @route POST /api/LecturerQuiz/create/manual
- * @access Private (Lecturer)
+ * @access Private (Lecturer or Sub-Lecturer)
  */
 const createManualQuiz = async (req, res) => {
     try {
@@ -28,6 +29,18 @@ const createManualQuiz = async (req, res) => {
         if (!lecturerId || !courseId || !title || !quizDuration || !quizStartTime) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
+
+        // Check if user has access to this course (owner or sub-lecturer)
+        const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
+
+        if (!course) {
+            return res.status(404).json({ success: false, message: "Course not found" });
+        }
+
+        if (!hasAccess) {
+            return res.status(403).json({ success: false, message: "You do not have access to this course" });
+        }
+
 
         // 1. Sanitize and Calculate Timings
         const now = new Date();

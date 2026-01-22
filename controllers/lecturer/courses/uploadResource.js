@@ -9,12 +9,13 @@ const cloudinary = require("../../../config/cloudinary");
 const cloudinaryUrlSigner = require("../../../utils/cloudinaryUrlSigner");
 const removeNewlines = require("../../../utils/newLineRemover");
 const textExtractor = require("../../../utils/textExtractor");
+const checkCourseAccess = require("../../../utils/checkCourseAccess");
 
 /**
  * Upload a PDF resource to a course
  * 
  * @route POST /api/Courses/resource/:courseId
- * @access Private - Requires authentication (lecturer only)
+ * @access Private - Requires authentication (lecturer or sub-lecturer)
  * 
  * @description Uploads a PDF file to Cloudinary, extracts its text content,
  * and stores both the file metadata and extracted content in the database.
@@ -47,20 +48,27 @@ const uploadResourceHandler = async (req, res) => {
     // Verify lecturer exists
     const user = await User.findById(lecturerId);
 
-    // Verify course exists AND belongs to this lecturer (authorization check)
-    const course = await Course.findOne({ _id: courseId, lecturerId });
-
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "lecturer not found" });
     }
 
+    // Check if user has access to this course (owner or sub-lecturer)
+    const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
+
     if (!course) {
       return res
         .status(404)
         .json({ success: false, message: "course not found" });
     }
+
+    if (!hasAccess) {
+      return res
+        .status(403)
+        .json({ success: false, message: "You do not have access to this course" });
+    }
+
 
     // Upload PDF to Cloudinary as a private raw file
     const result = await uploadPdfBufferToCloudinary(req.file.buffer);

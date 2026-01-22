@@ -327,7 +327,6 @@ const UserManagement = () => {
 
 ---
 
-**See also:** 
-- [Authentication API](./auth.md) - For login and token management
-- [Common Reference](./common.md) - For error handling and best practices
+- [Authentication API](../auth/index.md) - For login and token management
+- [Common Reference](../general/common.md) - For error handling and best practices
 

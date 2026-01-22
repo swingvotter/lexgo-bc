@@ -333,4 +333,4 @@ Gets a new set of access and refresh tokens using token rotation.
 
 ---
 
-**See also:** [Common Reference](./common.md) for global error handling and frontend implementation tips.
+**See also:** [Common Reference](../general/common.md) for global error handling and frontend implementation tips.

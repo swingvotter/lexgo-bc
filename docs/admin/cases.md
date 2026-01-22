@@ -25,11 +25,19 @@ Expects an array of case objects.
 |-------|------|----------|-------------|
 | `title` | string | ✅ Yes | The full title of the case |
 | `citation` | string | ✅ Yes | Unique case citation |
-| `jurisdiction` | string | ✅ Yes | Legal jurisdiction |
+| `jurisdiction` | string | ✅ Yes | Legal jurisdiction (e.g., Nigeria, International) |
 | `court` | object | ✅ Yes | `{ name: string, level: string }` |
-| `parties` | array | ✅ Yes | Array of `{ name: string, role: string }` |
+| `decision` | string | ❌ No | Summary of the final decision |
+| `judgmentDate` | date | ❌ No | Date of the judgment (ISO format) |
+| `summary` | string | ❌ No | Brief overview of the case |
+| `ratioDecidendi` | string | ❌ No | The main legal principle (reason for decision) |
+| `obiterDicta` | string | ❌ No | Sayings by the way |
+| `proceduralHistory` | string | ❌ No | History of the case through lower courts |
+| `parties` | array | ✅ Yes | Array of `{ name: string, role: "Appellant" | "Respondent" }` |
 | `judges` | array | ✅ Yes | Array of `{ name: string, position: string }` |
-| ... | ... | ... | See single create for all fields |
+| `legalAuthorities` | array | ❌ No | Array of `{ name: string, section: string }` |
+| `precedents` | array | ❌ No | Array of `{ citation: string, title: string }` |
+| `keywords` | array | ❌ No | Array of strings for search optimization |
 
 ### Success Response (201)
 ```json
@@ -51,6 +59,8 @@ Expects an array of case objects.
 **Endpoint:** `POST /api/Cases`  
 **Access:** Private (Admin Only)
 
+Accepts the same fields as the bulk create, but for a single object.
+
 ---
 
 ## 3. Get All Cases
@@ -62,6 +72,8 @@ Expects an array of case objects.
 - `page`: Page number (default: 1)
 - `limit`: Items per page (default: 10)
 - `search`: Search in titles or citations
+- `jurisdiction`: Filter by jurisdiction
+- `courtLevel`: Filter by court level
 
 ---
 

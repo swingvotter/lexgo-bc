@@ -1,93 +1,81 @@
 # LexGo API Documentation
 
 **API Version:** 1.0  
-**Last Updated:** December 2024
+**Last Updated:** January 2026
 
 ---
 
-## Overview
+## 📖 Overview
 
-Welcome to the LexGo API documentation. This API provides endpoints for authentication, user management, AI interactions, notes management, and administrative functions.
+Welcome to the LexGo API documentation. LexGo is a legal education platform featuring AI-powered course material generation, personal note-taking, and a structured learning environment for students and lecturers.
 
-## Base URLs
+---
 
-- **Auth API:** `/api/Auth`
-- **AI API:** `/api/AI`
-- **Admin API:** `/api/Admin`
-- **Notes API:** `/api/Notes`
+## 📂 Documentation Structure
 
-## Documentation Structure
+This documentation is organized by user roles and functional modules:
 
-This documentation is organized into separate files for easier navigation:
+### 1. 🔐 Authentication & Security
+- **[Authentication API](./auth/index.md)** - Registration, Login, OTP, and Token management.
+- **[Common Reference](./general/common.md)** - Error formats, Cookies, and Best practices.
 
-1. **[Authentication API](./auth.md)** - User registration, login, logout, password reset, and token management
-2. **[AI API](./ai.md)** - AI interaction endpoints
-3. **[Admin API](./admin.md)** - Administrative endpoints for user management
-4. **[Notes API](./notes.md)** - Create, read, update, and delete personal notes
-5. **[Cases API](./cases.md)** - Manage and search legal cases
-6. **[Common Reference](./common.md)** - Error handling, cookies, rate limiting, and frontend implementation tips
+### 2. 👨‍🏫 Lecturer Modules
+- **[Course Management](./lecturer/courses.md)** - Creating courses, uploading resources, and AI material generation.
+- **[Quiz System](./lecturer/quizzes.md)** - Creating manual and AI-generated quizzes.
+- **[Case Management](./lecturer/cases.md)** - Managing legal cases within courses.
+- **[Sub-Lecturer System](./lecturer/sub-lecturers.md)** - Delegating course management to other lecturers.
 
+### 3. 👨‍🎓 Student Modules
+- **[AI Tools](./user/ai.md)** - Interacting with AI for legal questions.
+- **[Notes Management](./user/notes.md)** - Creating and managing personal study notes.
+- **[Enrollment system](./user/enrollment.md)** - Applying for courses and viewing enrolled content.
+- **[Quizzes](./user/quizzes.md)** - Participating in AI and Lecturer-created quizzes.
 
-## Quick Start
+### 4. 🛠️ Administrative Modules
+- **[User Management](./admin/users.md)** - Fetching and managing user accounts.
+- **[Global Cases](./admin/cases.md)** - Managing the global legal case database.
 
-### 1. Authentication Flow
+---
 
-```
-Register → Login → Get Access Token → Use in API Requests
-```
+## 🚀 Quick Start
 
-### 2. Making Authenticated Requests
+### 1. Base URL
+`http://localhost:3000/api` (Local Development)
 
-All protected endpoints require an `accessToken` in the Authorization header:
-
+### 2. Authentication Flow
+All protected endpoints require an `accessToken` in the `Authorization` header:
 ```http
 Authorization: Bearer <accessToken>
 ```
+The `accessToken` expires every 15 minutes. Use the `refreshToken` (stored in an HttpOnly cookie) to get a new one via `POST /api/Auth/refresh-token`.
 
-### 3. Cookie Handling
+---
 
-The API uses HttpOnly cookies for security. Ensure your frontend sends cookies with requests:
+## ⚡ Rate Limiting
 
-```javascript
-// Axios example
-const api = axios.create({
-  baseURL: 'https://your-api.com',
-  withCredentials: true  // Required for cookies
-});
-```
+To ensure stability, the following rate limits are applied:
 
-## Rate Limiting
+| Endpoint Group | Limit | Window |
+| :--- | :--- | :--- |
+| **Login** | 3 requests | 15 minutes |
+| **OTP/Password Reset** | 3 requests | 15 minutes |
+| **AI Interactions** | 20 requests | 15 minutes |
+| **General API** | 100 requests | 15 minutes |
 
-Different endpoints have different rate limits:
+---
 
-| Endpoint Type | Limit | Window |
-|--------------|-------|--------|
-| Login | 3 requests | 15 minutes |
-| OTP Operations | 3 requests | 15 minutes |
-| AI Requests | 20 requests | 15 minutes |
-| General API | 100 requests | 15 minutes | Notes API endpoints |
+## 📊 Standard Response Format
 
-## Authentication
-
-Most endpoints require authentication. The authentication flow:
-
-1. User logs in → receives `accessToken` (expires in 15 minutes)
-2. `refreshToken` stored as HttpOnly cookie (expires in 7 days)
-3. When `accessToken` expires → use `/api/Auth/refresh-token` to get new token
-4. Include `accessToken` in `Authorization` header for protected routes
-
-## Response Format
-
-### Success Response
+### Success
 ```json
 {
   "success": true,
   "message": "Operation successful",
-  "data": { /* response data */ }
+  "data": { ... }
 }
 ```
 
-### Error Response
+### Error
 ```json
 {
   "success": false,
@@ -95,28 +83,6 @@ Most endpoints require authentication. The authentication flow:
 }
 ```
 
-## HTTP Status Codes
-
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created |
-| 400 | Bad Request - Invalid input |
-| 401 | Unauthorized - Invalid credentials or token |
-| 403 | Forbidden - Valid token but no access |
-| 404 | Not Found |
-| 429 | Too Many Requests - Rate limited |
-| 500 | Server Error |
-
-## Getting Started
-
-1. Start with [Authentication API](./auth.md) to register and login
-2. Review [Common Reference](./common.md) for error handling and best practices
-3. Explore [AI API](./ai.md) for AI interactions
-4. Use [Notes API](./notes.md) to manage personal notes
-5. Check [Admin API](./admin.md) for administrative functions (admin only)
-
 ---
 
-**Need Help?** Contact the Backend Team
-
+**See the [Common Reference](./general/common.md) for more details on error handling.**

@@ -453,7 +453,7 @@ const MyComponent = () => {
 ---
 
 **See also:**
-- [Authentication API](./auth.md) - For login and token management
-- [AI API](./ai.md) - For AI interactions
-- [Admin API](./admin.md) - For administrative functions
+- [Authentication API](../auth/index.md) - For login and token management
+- [AI API](../user/ai.md) - For AI interactions
+- [Admin API](../admin/users.md) - For administrative functions
 

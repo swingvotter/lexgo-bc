@@ -3,7 +3,12 @@ const Resource = require("../../../models/lecturer/resource");
 const ResourceContent = require("../../../models/lecturer/resourceContent");
 const CourseMaterial = require("../../../models/lecturer/courseMaterial");
 const LecturerCase = require("../../../models/lecturer/cases");
+const Enrollment = require("../../../models/users/enrollment.Model");
+const LecturerQuiz = require("../../../models/lecturer/quizes");
+const LecturerQuizSubmission = require("../../../models/users/lecturerQuizSubmission.Model");
+const SubLecturer = require("../../../models/lecturer/subLecturer");
 const cloudinary = require("../../../config/cloudinary");
+
 
 /**
  * Delete a course and all its related resources
@@ -14,7 +19,7 @@ const cloudinary = require("../../../config/cloudinary");
  * @description Performs a cascading delete that removes:
  * 1. Course image from Cloudinary
  * 2. All resource files (PDFs) from Cloudinary
- * 3. All database records (Resources, ResourceContents, CourseMaterials)
+ * 3. All database records (Resources, ResourceContents, CourseMaterials, Cases, Enrollments, Quizzes, QuizSubmissions)
  * 4. The course itself
  * 
  * @param {string} req.params.courseId - The course ID to delete
@@ -83,11 +88,16 @@ const deleteCourseHandler = async (req, res) => {
     await ResourceContent.deleteMany({ courseId });
     await CourseMaterial.deleteMany({ courseId });
     await LecturerCase.deleteMany({ courseId });
+    await Enrollment.deleteMany({ course: courseId });
+    await LecturerQuiz.deleteMany({ courseId });
+    await LecturerQuizSubmission.deleteMany({ courseId });
+    await SubLecturer.deleteMany({ courseId });
 
-    // Step 4: Finally remove the course itself
+    // Step 5: Finally remove the course itself
     await Course.findByIdAndDelete(courseId);
 
-    return res.status(200).json({ success: true, message: "course and related resources deleted" });
+
+    return res.status(200).json({ success: true, message: "course and all related resources deleted successfully" });
   } catch (error) {
     console.error("Delete course error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -95,4 +105,5 @@ const deleteCourseHandler = async (req, res) => {
 };
 
 module.exports = deleteCourseHandler;
+
 

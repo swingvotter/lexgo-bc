@@ -1,6 +1,7 @@
 const LecturerCase = require("../../../models/lecturer/cases");
 const Course = require("../../../models/lecturer/courses.Model");
 const { uploadPdfBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
+const checkCourseAccess = require("../../../utils/checkCourseAccess");
 
 const createCase = async (req, res) => {
     try {
@@ -16,11 +17,17 @@ const createCase = async (req, res) => {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
 
-        // Verify course exists AND belongs to this lecturer
-        const course = await Course.findOne({ _id: courseId, lecturerId });
+        // Check if user has access to this course (owner or sub-lecturer)
+        const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
+
         if (!course) {
-            return res.status(404).json({ success: false, message: "Course not found or unauthorized" });
+            return res.status(404).json({ success: false, message: "Course not found" });
         }
+
+        if (!hasAccess) {
+            return res.status(403).json({ success: false, message: "You do not have access to this course" });
+        }
+
 
         // Check if case with same title already exists in this course
         const existingCase = await LecturerCase.findOne({ courseId, title });
