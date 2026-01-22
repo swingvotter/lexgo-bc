@@ -1,5 +1,6 @@
 const ResourceContent = require("../../../models/lecturer/resourceContent");
 const Course = require("../../../models/lecturer/courses.Model");
+const CourseMaterial = require("../../../models/lecturer/courseMaterial");
 const courseMaterialQueue = require("../../../queues/courseMaterialQueue");
 
 /**
@@ -12,6 +13,10 @@ const courseMaterialQueue = require("../../../queues/courseMaterialQueue");
  * and queues an AI job to generate study materials (summaries, quizzes, etc.).
  * Returns a job ID that can be polled for status.
  * 
+ * **IMPORTANT**: Course materials can only be created ONCE per course.
+ * Lecturers can still upload resources multiple times, but AI material
+ * generation is a one-time operation to prevent duplicate content.
+ * 
  * @param {string} req.params.courseId - The course ID to generate materials for
  * @returns {Object} Job ID for tracking the background processing
  */
@@ -22,6 +27,16 @@ const createCourseMaterialHandler = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "courseId is required",
+      });
+    }
+
+    // Check if course materials already exist for this course
+    const existingMaterial = await CourseMaterial.findOne({ courseId });
+    if (existingMaterial) {
+      return res.status(409).json({
+        success: false,
+        message: "Course materials have already been created for this course. You can upload additional resources, but cannot regenerate course materials.",
+        courseMaterialId: existingMaterial._id
       });
     }
 
