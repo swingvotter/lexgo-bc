@@ -1,3 +1,4 @@
+
 const LecturerQuiz = require("../../../models/lecturer/quizes");
 const checkCourseAccess = require("../../../utils/checkCourseAccess");
 
@@ -84,7 +85,7 @@ const createManualQuiz = async (req, res) => {
         // 3. Create the Quiz Entry with Questions embedded
         const newQuiz = await LecturerQuiz.create({
             lecturerId,
-            courseId,
+            courseId: course._id, // Use validated ID
             title,
             description,
             quizDuration,

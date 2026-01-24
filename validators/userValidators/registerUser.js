@@ -47,7 +47,6 @@ const userSchema = Joi.object({
     .messages({
       "any.only": "Confirm password must match password",
     }),
-
   role: Joi.string()
     .valid("student", "lecturer", "admin")
     .default("student"),
