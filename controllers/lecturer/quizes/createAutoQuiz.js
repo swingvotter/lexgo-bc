@@ -43,7 +43,6 @@ const createAutoQuiz = async (req, res) => {
             return res.status(403).json({ success: false, message: "You do not have access to this course" });
         }
 
-
         // 1. Sanitize and Calculate Timings
         const now = new Date();
         let startTime = new Date(quizStartTime);
@@ -66,12 +65,12 @@ const createAutoQuiz = async (req, res) => {
             endTime = new Date(startTime.getTime() + durationInMs);
         }
 
-        // 1. Validate File existence strictly
+        // 2. Validate File existence strictly
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Document file is required for automatic creation" });
         }
 
-        // 2. Create the Quiz Entry
+        // 3. Create the Quiz Entry
         const newQuiz = await LecturerQuiz.create({
             lecturerId,
             courseId: course._id, // Use validated ID
@@ -87,7 +86,7 @@ const createAutoQuiz = async (req, res) => {
             showScoresImmediately: showScoresImmediately === 'true' || showScoresImmediately === true,
         });
 
-        // 3. Extract Text from File
+        // 4. Extract Text from File
         let textContent = "";
         try {
             textContent = await extractText({
@@ -105,8 +104,8 @@ const createAutoQuiz = async (req, res) => {
             return res.status(400).json({ success: false, message: "Extracted text is empty" });
         }
 
-        // 4. Add to Worker Queue
-        const numQ = numberOfQuestions || 10;
+        // 5. Add to Worker Queue
+        const numQ = parseInt(numberOfQuestions) || 10;
 
         const job = await lecturerQuizQueue.add("generate-quiz-from-doc", {
             quizId: newQuiz._id,
