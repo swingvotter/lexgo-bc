@@ -36,7 +36,7 @@ async function askAiHandler(req, res) {
     const { question } = value;
 
     const userId = req.userInfo.id;
-    const AI_LIMIT = 50; // You can move this to an env variable later
+    const AI_LIMIT = 20; // You can move this to an env variable later
 
     // Fetch user and check count BEFORE the expensive AI call
     const user = await User.findById(userId).select("askAiCount");

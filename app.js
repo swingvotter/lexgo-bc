@@ -17,6 +17,7 @@ const enrollmentRouter = require("./routes/enrollment.routes");
 const lecturerCaseRouter = require("./routes/lecturer_case.routes");
 const lecturerQuizRouter = require("./routes/lecturer_quiz.routes");
 const studentQuizRouter = require("./routes/student_quiz.routes");
+const studentCaseRouter = require("./routes/student_case.routes");
 const subLecturerRouter = require("./routes/subLecturer.routes");
 
 
@@ -47,6 +48,7 @@ app.use("/api/Enrollments", enrollmentRouter);
 app.use("/api/LecturerCases", lecturerCaseRouter);
 app.use("/api/LecturerQuiz", lecturerQuizRouter);
 app.use("/api/StudentQuiz", studentQuizRouter);
+app.use("/api/StudentCases", studentCaseRouter);
 app.use("/api/SubLecturer", subLecturerRouter);
 
 

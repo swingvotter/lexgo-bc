@@ -4,6 +4,7 @@ const redis = require("./config/redis")
 const createQuizWorker = require("./workers/quizWorker")
 const createCourseMaterialWorker = require("./workers/courseMaterialWorker")
 const createLecturerWorker = require("./workers/lecturerQuizWorker")
+const createCaseQuizWorker = require("./workers/caseQuizWorker")
 
 const port = process.env.PORT || 3001
 
@@ -24,6 +25,9 @@ redis.on("ready", () => {
   // Initialize lecturer quiz worker
   createLecturerWorker();
   console.log("Lecturer quiz worker initialized");
+  // Initialize case quiz worker
+  createCaseQuizWorker();
+  console.log("Case quiz worker initialized");
 });
 
 redis.on("error", (err) => {

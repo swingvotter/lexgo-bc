@@ -2,6 +2,8 @@ const LecturerCase = require("../../../models/lecturer/cases");
 const Course = require("../../../models/lecturer/courses.Model");
 const { uploadPdfBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
 const checkCourseAccess = require("../../../utils/checkCourseAccess");
+const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
+const caseQuizQueue = require("../../../queues/caseQuizQueue");
 
 const createCase = async (req, res) => {
     try {
@@ -46,6 +48,7 @@ const createCase = async (req, res) => {
             caseDocumentPublicId = uploadResult.public_id;
         }
 
+        // Create the Case first
         const newCase = await LecturerCase.create({
             lecturerId,
             courseId,
@@ -56,7 +59,34 @@ const createCase = async (req, res) => {
             caseDocumentPublicId
         });
 
-        return res.status(201).json({ success: true, message: "Case created successfully", data: newCase });
+        // Initialize CaseQuiz record (pending)
+        await CaseQuiz.create({
+            caseId: newCase._id,
+            status: "pending"
+        });
+
+        // Queue background job for AI quiz generation
+        // Converting buffer to base64 for job storage in Redis
+        await caseQuizQueue.add(
+            "generate-case-quiz",
+            {
+                caseId: newCase._id,
+                file: {
+                    buffer: req.file.buffer.toString('base64'),
+                    originalname: req.file.originalname
+                }
+            },
+            {
+                attempts: 2,
+                backoff: { type: "exponential", delay: 1000 }
+            }
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: "Case created successfully. Quiz is being generated in the background.",
+            data: newCase
+        });
 
     } catch (error) {
         console.error("Create case error:", error);
