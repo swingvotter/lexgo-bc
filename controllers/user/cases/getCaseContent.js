@@ -1,6 +1,7 @@
 const LecturerCase = require("../../../models/lecturer/cases");
 const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const Enrollment = require("../../../models/users/enrollment.Model");
+const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
 const generateSignedUrl = require("../../../utils/cloudinaryUrlSigner");
 
 /**
@@ -32,14 +33,19 @@ const getCaseDetailsForStudent = async (req, res) => {
             });
         }
 
-        // 3. Fetch the Quiz
-        const caseQuiz = await CaseQuiz.findOne({ caseId }).lean();
+        // 3. Fetch the Quiz and Attempt Count
+        const [caseQuiz, attemptCount] = await Promise.all([
+            CaseQuiz.findOne({ caseId }).lean(),
+            CaseQuizSubmission.countDocuments({ caseId, studentId: userId })
+        ]);
 
         // 4. Prepare Case and Quiz for Student
         const studentCase = {
             ...foundCase,
             documentUrl: foundCase.caseDocumentPublicId ? generateSignedUrl(foundCase.caseDocumentPublicId) : null,
             quizStatus: caseQuiz ? caseQuiz.status : "not_started",
+            attemptsTaken: attemptCount,
+            attemptsRemaining: Math.max(0, 2 - attemptCount),
             quiz: (caseQuiz?.questions || []).map((q) => {
                 const { correctAnswer, explanation, ...rest } = q;
                 return rest;

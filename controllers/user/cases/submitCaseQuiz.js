@@ -57,15 +57,23 @@ const submitCaseQuiz = async (req, res) => {
 
         const totalPossibleScore = quizQuestions.length;
 
-        // 5. Check if it's the first time taking this case quiz to increment lessonsCompleted
-        const previousSubmission = await CaseQuizSubmission.findOne({ caseId, studentId: userId });
-        if (!previousSubmission) {
+        // 5. Enforce Two-Attempt Submission Limit
+        const submissionCount = await CaseQuizSubmission.countDocuments({ caseId, studentId: userId });
+        if (submissionCount >= 2) {
+            return res.status(403).json({
+                success: false,
+                message: "You have already reached the maximum of two attempts for this case quiz."
+            });
+        }
+
+        // 6. Increment lessonsCompleted only on the VERY FIRST attempt
+        if (submissionCount === 0) {
             await User.findByIdAndUpdate(userId, {
                 $inc: { "progress.lessonsCompleted": 1 }
             });
         }
 
-        // 6. Save Submission
+        // 7. Save Submission
         const submission = await CaseQuizSubmission.create({
             caseId,
             studentId: userId,
@@ -81,7 +89,9 @@ const submitCaseQuiz = async (req, res) => {
             data: {
                 score,
                 totalPossibleScore,
-                submissionId: submission._id
+                submissionId: submission._id,
+                attemptNumber: submissionCount + 1,
+                attemptsRemaining: 2 - (submissionCount + 1)
             },
         });
     } catch (error) {
