@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Course = require("../../../models/lecturer/courses.Model");
 const Resource = require("../../../models/lecturer/resource");
 const ResourceContent = require("../../../models/lecturer/resourceContent");
@@ -6,6 +7,8 @@ const LecturerCase = require("../../../models/lecturer/cases");
 const Enrollment = require("../../../models/users/enrollment.Model");
 const LecturerQuiz = require("../../../models/lecturer/quizes");
 const LecturerQuizSubmission = require("../../../models/users/lecturerQuizSubmission.Model");
+const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
+const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
 const SubLecturer = require("../../../models/lecturer/subLecturer");
 const cloudinary = require("../../../config/cloudinary");
 
@@ -25,6 +28,7 @@ const cloudinary = require("../../../config/cloudinary");
  * @param {string} req.params.courseId - The course ID to delete
  */
 const deleteCourseHandler = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
     const courseId = req.params?.courseId;
     if (!courseId) {
@@ -48,18 +52,16 @@ const deleteCourseHandler = async (req, res) => {
       try {
         await cloudinary.uploader.destroy(course.coursePublicImageId);
       } catch (err) {
-        // Log but don't fail - continue with deletion even if Cloudinary fails
         console.error("Failed to delete course image from cloudinary:", err.message);
       }
     }
 
-    // Step 2: Find all resources and delete their files from Cloudinary
+    // Step 2: Find and Delete resource files from Cloudinary
     const resources = await Resource.find({ courseId });
     await Promise.all(
       resources.map(async (r) => {
         if (r.publicId) {
           try {
-            // PDFs are stored as private raw files
             await cloudinary.uploader.destroy(r.publicId, { resource_type: "raw", type: "private" });
           } catch (err) {
             console.error("Failed to delete resource from cloudinary:", err.message);
@@ -68,13 +70,12 @@ const deleteCourseHandler = async (req, res) => {
       })
     );
 
-    // Step 3: Find all cases and delete their files from Cloudinary
+    // Step 3: Find and Delete case files from Cloudinary
     const cases = await LecturerCase.find({ courseId });
     await Promise.all(
       cases.map(async (c) => {
         if (c.caseDocumentPublicId) {
           try {
-            // Case documents (PDFs) are stored as private raw files
             await cloudinary.uploader.destroy(c.caseDocumentPublicId, { resource_type: "raw", type: "private" });
           } catch (err) {
             console.error("Failed to delete case document from cloudinary:", err.message);
@@ -83,24 +84,35 @@ const deleteCourseHandler = async (req, res) => {
       })
     );
 
+    // --- Start Database Transaction ---
+    session.startTransaction();
+
     // Step 4: Remove all related database entries
-    await Resource.deleteMany({ courseId });
-    await ResourceContent.deleteMany({ courseId });
-    await CourseMaterial.deleteMany({ courseId });
-    await LecturerCase.deleteMany({ courseId });
-    await Enrollment.deleteMany({ course: courseId });
-    await LecturerQuiz.deleteMany({ courseId });
-    await LecturerQuizSubmission.deleteMany({ courseId });
-    await SubLecturer.deleteMany({ courseId });
+    await Resource.deleteMany({ courseId }).session(session);
+    await ResourceContent.deleteMany({ courseId }).session(session);
+    await CourseMaterial.deleteMany({ courseId }).session(session);
+    await LecturerCase.deleteMany({ courseId }).session(session);
+    await CaseQuiz.deleteMany({ caseId: { $in: cases.map(c => c._id) } }).session(session);
+    await CaseQuizSubmission.deleteMany({ courseId }).session(session);
+    await Enrollment.deleteMany({ course: courseId }).session(session);
+    await LecturerQuiz.deleteMany({ courseId }).session(session);
+    await LecturerQuizSubmission.deleteMany({ courseId }).session(session);
+    await SubLecturer.deleteMany({ courseId }).session(session);
 
     // Step 5: Finally remove the course itself
-    await Course.findByIdAndDelete(courseId);
+    await Course.findByIdAndDelete(courseId).session(session);
 
+    await session.commitTransaction();
 
     return res.status(200).json({ success: true, message: "course and all related resources deleted successfully" });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     console.error("Delete course error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    session.endSession();
   }
 };
 

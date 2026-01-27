@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const LecturerCase = require("../../../models/lecturer/cases");
 const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const Enrollment = require("../../../models/users/enrollment.Model");
@@ -9,6 +10,7 @@ const User = require("../../../models/users/user.Model");
  * Tracks student progress by calculating score and saving the result.
  */
 const submitCaseQuiz = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { caseId } = req.params;
         const { answers } = req.body; // Array of { questionId, selectedOption }
@@ -57,9 +59,13 @@ const submitCaseQuiz = async (req, res) => {
 
         const totalPossibleScore = quizQuestions.length;
 
+        // Start Transaction for mutations
+        session.startTransaction();
+
         // 5. Enforce Two-Attempt Submission Limit
-        const submissionCount = await CaseQuizSubmission.countDocuments({ caseId, studentId: userId });
+        const submissionCount = await CaseQuizSubmission.countDocuments({ caseId, studentId: userId }).session(session);
         if (submissionCount >= 2) {
+            await session.abortTransaction();
             return res.status(403).json({
                 success: false,
                 message: "You have already reached the maximum of two attempts for this case quiz."
@@ -70,18 +76,20 @@ const submitCaseQuiz = async (req, res) => {
         if (submissionCount === 0) {
             await User.findByIdAndUpdate(userId, {
                 $inc: { "progress.lessonsCompleted": 1 }
-            });
+            }, { session });
         }
 
         // 7. Save Submission
-        const submission = await CaseQuizSubmission.create({
+        const [submission] = await CaseQuizSubmission.create([{
             caseId,
             studentId: userId,
             courseId: foundCase.courseId,
             score,
             totalPossibleScore,
             answers: processedAnswers,
-        });
+        }], { session });
+
+        await session.commitTransaction();
 
         return res.status(201).json({
             success: true,
@@ -95,8 +103,13 @@ const submitCaseQuiz = async (req, res) => {
             },
         });
     } catch (error) {
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
         console.error("Submit Case Quiz Error:", error);
         return res.status(500).json({ success: false, message: "Server error", error: error.message });
+    } finally {
+        session.endSession();
     }
 };
 

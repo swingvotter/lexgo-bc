@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const LecturerCase = require("../../../models/lecturer/cases");
 const Course = require("../../../models/lecturer/courses.Model");
 const { uploadPdfBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
@@ -6,6 +7,7 @@ const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const caseQuizQueue = require("../../../queues/caseQuizQueue");
 
 const createCase = async (req, res) => {
+    const session = await mongoose.startSession();
     try {
         const { title, sourceOfCase, caseCode, caseCategory } = req.body;
         const { courseId } = req.params;
@@ -48,8 +50,11 @@ const createCase = async (req, res) => {
             caseDocumentPublicId = uploadResult.public_id;
         }
 
+        // --- Start Database Transaction ---
+        session.startTransaction();
+
         // Create the Case first
-        const newCase = await LecturerCase.create({
+        const [newCase] = await LecturerCase.create([{
             lecturerId,
             courseId,
             title,
@@ -57,16 +62,17 @@ const createCase = async (req, res) => {
             caseCode,
             caseCategory,
             caseDocumentPublicId
-        });
+        }], { session });
 
         // Initialize CaseQuiz record (pending)
-        await CaseQuiz.create({
+        await CaseQuiz.create([{
             caseId: newCase._id,
             status: "pending"
-        });
+        }], { session });
 
-        // Queue background job for AI quiz generation
-        // Converting buffer to base64 for job storage in Redis
+        await session.commitTransaction();
+
+        // Queue background job for AI quiz generation (Outside transaction)
         await caseQuizQueue.add(
             "generate-case-quiz",
             {
@@ -89,8 +95,13 @@ const createCase = async (req, res) => {
         });
 
     } catch (error) {
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
         console.error("Create case error:", error);
         return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    } finally {
+        session.endSession();
     }
 };
 

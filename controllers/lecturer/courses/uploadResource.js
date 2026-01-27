@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../../../models/users/user.Model");
 const Course = require("../../../models/lecturer/courses.Model");
 const Resource = require("../../../models/lecturer/resource");
@@ -25,83 +26,62 @@ const checkCourseAccess = require("../../../utils/checkCourseAccess");
  * @param {Object} req.file - PDF file (required, handled by multer)
  */
 const uploadResourceHandler = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
     const { courseId } = req.params;
 
-    // Validate courseId is provided
     if (!courseId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "courseId is missing" });
+      return res.status(400).json({ success: false, message: "courseId is required" });
     }
 
-    // Validate file was uploaded
     if (!req.file) {
-      return res
-        .status(404)
-        .json({ success: false, message: "file is missing" });
+      return res.status(400).json({ success: false, message: "file is missing" });
     }
 
-    // Get lecturer ID from auth middleware
     const lecturerId = req.userInfo.id;
-
-    // Verify lecturer exists
-    const user = await User.findById(lecturerId);
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "lecturer not found" });
-    }
 
     // Check if user has access to this course (owner or sub-lecturer)
     const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
 
     if (!course) {
-      return res
-        .status(404)
-        .json({ success: false, message: "course not found" });
+      return res.status(404).json({ success: false, message: "course not found" });
     }
 
     if (!hasAccess) {
-      return res
-        .status(403)
-        .json({ success: false, message: "You do not have access to this course" });
+      return res.status(403).json({ success: false, message: "You do not have access to this course" });
     }
-
 
     // Upload PDF to Cloudinary as a private raw file
     const result = await uploadPdfBufferToCloudinary(req.file.buffer);
     if (!result) {
-      return res
-        .status(400)
-        .json({ success: false, message: "course do not exist" });
+      return res.status(400).json({ success: false, message: "upload failed" });
     }
 
     // Extract text content from the file for AI processing
     const data = await textExtractor(req.file);
+    const updatedContent = removeNewlines(data);
+
+    // --- Start Database Transaction ---
+    session.startTransaction();
 
     // Create resource record in database
-    const newResource = await Resource.create({
+    const [newResource] = await Resource.create([{
       lecturerId,
       courseId: course._id,
       fileName: req.file.originalname,
       fileSize: req.file.size,
       fileExtension: req.file.mimetype,
       publicId: result.public_id,
-    });
-
-
-
-    // Clean up extracted text (remove excessive newlines)
-    const updatedContent = removeNewlines(data);
+    }], { session });
 
     // Store extracted text content for AI course material generation
-    await ResourceContent.create({
+    await ResourceContent.create([{
       resourceId: newResource._id,
       courseId: course._id,
       content: updatedContent,
-    });
+    }], { session });
+
+    await session.commitTransaction();
 
     return res.status(201).json({
       success: true,
@@ -109,10 +89,13 @@ const uploadResourceHandler = async (req, res) => {
       resourceId: newResource._id,
     });
   } catch (error) {
-    console.error("Create course error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "error::server error" });
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    console.error("Upload resource error:", error);
+    return res.status(500).json({ success: false, message: "server error" });
+  } finally {
+    session.endSession();
   }
 };
 

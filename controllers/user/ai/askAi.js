@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Joi = require("joi");
 const AiHistory = require("../../../models/users/aiHitory.model");
 const User = require("../../../models/users/user.Model");
@@ -22,6 +23,7 @@ const askAiSchema = Joi.object({
  * @returns {Object} The AI's answer and updated Q&A history entry
  */
 async function askAiHandler(req, res) {
+  const session = await mongoose.startSession();
   try {
     // Validate request body
     const { error, value } = askAiSchema.validate(req.body, { abortEarly: false, allowUnknown: false });
@@ -65,19 +67,24 @@ async function askAiHandler(req, res) {
       });
     }
 
+    // --- Start Database Transaction for consistent updates ---
+    session.startTransaction();
+
     // Save history to database
-    const aiEntry = await AiHistory.create({
+    const [aiEntry] = await AiHistory.create([{
       userId,
       question,
       answer
-    });
+    }], { session });
 
     // Increment user ask count for usage tracking/limits
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $inc: { askAiCount: 1 } },
-      { new: true, select: "askAiCount" }
+      { new: true, select: "askAiCount", session }
     );
+
+    await session.commitTransaction();
 
     return res.status(201).json({
       success: true,
@@ -91,11 +98,16 @@ async function askAiHandler(req, res) {
     });
 
   } catch (err) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     console.error("Error in askAi controller:", err);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
+  } finally {
+    session.endSession();
   }
 }
 
