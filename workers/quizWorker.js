@@ -35,8 +35,8 @@ function createWorker() {
         const options = Array.isArray(q.options)
           ? q.options
           : Array.isArray(q.answers)
-          ? q.answers
-          : [];
+            ? q.answers
+            : [];
 
         // Use letter-based correct answer (A, B, or C)
         let correctAnswer = "A";
@@ -69,6 +69,8 @@ function createWorker() {
     {
       connection: redis,
       concurrency: 5,
+      lockDuration: 60000,
+      stalledInterval: 30000,
     }
   );
 

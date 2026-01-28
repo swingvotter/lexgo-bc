@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const caseSchema = new mongoose.Schema(
+const adminCaseSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     citation: { type: String, unique: true, required: true },
@@ -50,5 +50,5 @@ const caseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Case = mongoose.model("Case", caseSchema);
-module.exports = Case;
+const AdminCase = mongoose.model("AdminCase", adminCaseSchema, "adminCases");
+module.exports = AdminCase;

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/cases");
+const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
 const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const Enrollment = require("../../../models/users/enrollment.Model");
 const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
@@ -13,7 +13,7 @@ const submitCaseQuiz = async (req, res) => {
     const session = await mongoose.startSession();
     try {
         const { caseId } = req.params;
-        const { answers } = req.body; // Array of { questionId, selectedOption }
+        const { answers } = req.body || {}; // Array of { questionId, selectedOption }
         const userId = req.userInfo.id;
 
         // 1. Fetch the Case
@@ -62,15 +62,8 @@ const submitCaseQuiz = async (req, res) => {
         // Start Transaction for mutations
         session.startTransaction();
 
-        // 5. Enforce Two-Attempt Submission Limit
+        // 5. Check submission count for lesson progress increment
         const submissionCount = await CaseQuizSubmission.countDocuments({ caseId, studentId: userId }).session(session);
-        if (submissionCount >= 2) {
-            await session.abortTransaction();
-            return res.status(403).json({
-                success: false,
-                message: "You have already reached the maximum of two attempts for this case quiz."
-            });
-        }
 
         // 6. Increment lessonsCompleted only on the VERY FIRST attempt
         if (submissionCount === 0) {
@@ -99,7 +92,7 @@ const submitCaseQuiz = async (req, res) => {
                 totalPossibleScore,
                 submissionId: submission._id,
                 attemptNumber: submissionCount + 1,
-                attemptsRemaining: 2 - (submissionCount + 1)
+                attemptsRemaining: "unlimited"
             },
         });
     } catch (error) {

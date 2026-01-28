@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const otpVerificationHandler = async (req, res) => {
   try {
 
-    const { otpCode } = req.body;
+    const { otpCode } = req.body || {};
 
     const token = req.cookies.otpCodeToken;
 

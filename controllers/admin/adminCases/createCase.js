@@ -1,9 +1,9 @@
-const Case = require("../../../models/admin/casesModel");
+const AdminCase = require("../../../models/admin/adminCase.Model");
 const createCaseSchema = require("../../../validators/caseValidators/createCaseValidator");
 
 const createCase = async (req, res) => {
   try {
-    const { error, value } = createCaseSchema.validate(req.body, {
+    const { error, value } = createCaseSchema.validate(req.body || {}, {
       abortEarly: false,
       allowUnknown: false,
     });
@@ -13,7 +13,7 @@ const createCase = async (req, res) => {
     }
 
     // Step 2: Check for duplicates in DB
-    const existingCase = await Case.findOne({
+    const existingCase = await AdminCase.findOne({
       $or: [
         { title: value.title },
         { citation: value.citation },
@@ -27,9 +27,9 @@ const createCase = async (req, res) => {
     }
 
     // Step 3: Create new case
-    const newCase = await Case.create(value);
+    const newCase = await AdminCase.create(value);
 
-    return res.status(201).json({ success: true, message:"case succesfully created",data: newCase });
+    return res.status(201).json({ success: true, message: "case succesfully created", data: newCase });
 
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

@@ -45,7 +45,7 @@ const updateNote = async (req, res) => {
       });
     }
 
-    const { title, legalTopic, importanceLevel, content } = req.body;
+    const { title, legalTopic, importanceLevel, content } = req.body || {};
 
     // Check if at least one field is provided for update
     if (!title && !legalTopic && !importanceLevel && !content) {

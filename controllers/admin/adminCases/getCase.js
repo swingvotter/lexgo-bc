@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Case = require("../../../models/admin/casesModel");
+const AdminCase = require("../../../models/admin/adminCase.Model");
 
 const getCaseById = async (req, res) => {
   try {
@@ -14,7 +14,7 @@ const getCaseById = async (req, res) => {
     }
 
     // Step 2: Find the case by ID
-    const foundCase = await Case.findById(id).lean();
+    const foundCase = await AdminCase.findById(id).lean();
 
     if (!foundCase) {
       return res.status(404).json({

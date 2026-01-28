@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/cases");
+const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
 const Course = require("../../../models/lecturer/courses.Model");
 const { uploadPdfBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
 const checkCourseAccess = require("../../../utils/checkCourseAccess");
@@ -9,7 +9,7 @@ const caseQuizQueue = require("../../../queues/caseQuizQueue");
 const createCase = async (req, res) => {
     const session = await mongoose.startSession();
     try {
-        const { title, sourceOfCase, caseCode, caseCategory } = req.body;
+        const { title, sourceOfCase, caseCode, caseCategory } = req.body || {};
         const { courseId } = req.params;
         const lecturerId = req.userInfo.id;
 
@@ -61,7 +61,9 @@ const createCase = async (req, res) => {
             sourceOfCase,
             caseCode,
             caseCategory,
-            caseDocumentPublicId
+            caseDocumentPublicId,
+            documentFileName: req.file.originalname,
+            documentMimeType: req.file.mimetype
         }], { session });
 
         // Initialize CaseQuiz record (pending)

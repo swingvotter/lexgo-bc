@@ -4,12 +4,12 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
-const createCase = require("../controllers/admin/cases/createCase");
-const createManyCases = require("../controllers/admin/cases/createManyCases");
-const deleteCase = require("../controllers/admin/cases/deleteCase");
-const updateCase = require("../controllers/admin/cases/updateCase");
-const getAllCases = require("../controllers/admin/cases/getCases");
-const getCaseById = require("../controllers/admin/cases/getCase");
+const createCase = require("../controllers/admin/adminCases/createCase");
+const createManyCases = require("../controllers/admin/adminCases/createManyCases");
+const deleteCase = require("../controllers/admin/adminCases/deleteCase");
+const updateCase = require("../controllers/admin/adminCases/updateCase");
+const getAllCases = require("../controllers/admin/adminCases/getCases");
+const getCaseById = require("../controllers/admin/adminCases/getCase");
 
 const { apiLimiter } = require("../utils/rateLimiter");
 

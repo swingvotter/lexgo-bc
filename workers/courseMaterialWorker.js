@@ -42,6 +42,8 @@ function createWorker() {
     {
       connection: redis,
       concurrency: 2,
+      lockDuration: 120000, // 2 minutes, as this is the heaviest AI task
+      stalledInterval: 60000,
     }
   );
 

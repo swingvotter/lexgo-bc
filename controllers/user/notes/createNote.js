@@ -25,7 +25,7 @@ const createNote = async (req, res) => {
         .json({ success: false, message: "Unauthorized: user must login first" });
     }
 
-    const { title, legalTopic, importanceLevel, content } = req.body;
+    const { title, legalTopic, importanceLevel, content } = req.body || {};
 
     // Validate required fields
     if (!title || !legalTopic || !importanceLevel || !content) {

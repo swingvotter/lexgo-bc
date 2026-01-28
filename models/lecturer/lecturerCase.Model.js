@@ -16,7 +16,9 @@ const CaseSchema = new mongoose.Schema({
   caseCode: { type: String, required: true },
   caseCategory: { type: String, required: true },
   caseDocumentPublicId: { type: String },
+  documentFileName: { type: String },
+  documentMimeType: { type: String },
 });
 
-const LecturerCase = mongoose.model("LecturerCase", CaseSchema);
+const LecturerCase = mongoose.model("LecturerCase", CaseSchema, "lecturerCases");
 module.exports = LecturerCase;

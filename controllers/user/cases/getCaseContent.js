@@ -1,4 +1,4 @@
-const LecturerCase = require("../../../models/lecturer/cases");
+const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
 const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const Enrollment = require("../../../models/users/enrollment.Model");
 const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
@@ -42,10 +42,12 @@ const getCaseDetailsForStudent = async (req, res) => {
         // 4. Prepare Case and Quiz for Student
         const studentCase = {
             ...foundCase,
-            documentUrl: foundCase.caseDocumentPublicId ? generateSignedUrl(foundCase.caseDocumentPublicId) : null,
+            documentUrl: `/api/StudentCases/${caseId}/view-document`,
+            documentFileName: foundCase.documentFileName,
+            documentMimeType: foundCase.documentMimeType,
             quizStatus: caseQuiz ? caseQuiz.status : "not_started",
             attemptsTaken: attemptCount,
-            attemptsRemaining: Math.max(0, 2 - attemptCount),
+            attemptsRemaining: "unlimited",
             quiz: (caseQuiz?.questions || []).map((q) => {
                 const { correctAnswer, explanation, ...rest } = q;
                 return rest;

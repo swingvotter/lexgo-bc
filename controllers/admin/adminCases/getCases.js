@@ -1,9 +1,9 @@
-const Case = require("../../../models/admin/casesModel");
+const AdminCase = require("../../../models/admin/adminCase.Model");
 const getPagination = require("../../../utils/pagination")
 
 const getAllCases = async (req, res) => {
   try {
-    
+
     // ---------------------------
     // 1. Pagination
     // ---------------------------
@@ -62,9 +62,9 @@ const getAllCases = async (req, res) => {
     // 5. Query database
     // ---------------------------
     const [cases, total] = await Promise.all([
-      Case.find(filter).sort(sortOptions).skip(skip).limit(limit).lean(),
+      AdminCase.find(filter).sort(sortOptions).skip(skip).limit(limit).lean(),
 
-      Case.countDocuments(filter),
+      AdminCase.countDocuments(filter),
     ]);
 
     // ---------------------------

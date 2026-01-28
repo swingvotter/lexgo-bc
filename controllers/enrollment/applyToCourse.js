@@ -19,7 +19,7 @@ const mongoose = require("mongoose");
 const applyToCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
-        const { courseCode } = req.body || "";
+        const { courseCode } = req.body || {};
         const userId = req.userInfo.id; // Get student ID from auth middleware
 
         if (!mongoose.Types.ObjectId.isValid(courseId)) {

@@ -2,7 +2,7 @@ const quizQueue = require("../../../../queues/quizQueue");
 
 const generateQuizHandler = async (req, res) => {
   try {
-    const { topic, difficultyLevel, numberOfQuiz } = req.body;
+    const { topic, difficultyLevel, numberOfQuiz } = req.body || {};
     const userId = req.userInfo.id; // from auth middleware
 
     // 1️⃣ Validate input

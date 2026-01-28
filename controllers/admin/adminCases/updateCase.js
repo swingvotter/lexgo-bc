@@ -1,4 +1,4 @@
-const Case = require("../../../models/admin/casesModel");
+const AdminCase = require("../../../models/admin/adminCase.Model");
 const updateCaseSchema = require("../../../validators/caseValidators/updateCaseValidator");
 
 const updateCase = async (req, res) => {
@@ -12,7 +12,7 @@ const updateCase = async (req, res) => {
     }
 
     // Step 1: Validate request body
-    const { error, value } = updateCaseSchema.validate(req.body, {
+    const { error, value } = updateCaseSchema.validate(req.body || {}, {
       abortEarly: false,
       allowUnknown: false,
     });
@@ -32,7 +32,7 @@ const updateCase = async (req, res) => {
 
     // Step 2: Check for duplicates
     if (value.title || value.citation) {
-      const duplicate = await Case.findOne({
+      const duplicate = await AdminCase.findOne({
         _id: { $ne: id },
         $or: [
           value.title ? { title: value.title } : null,
@@ -49,7 +49,7 @@ const updateCase = async (req, res) => {
     }
 
     // Step 3: Update
-    const updatedCase = await Case.findByIdAndUpdate(
+    const updatedCase = await AdminCase.findByIdAndUpdate(
       id,
       { $set: value },
       { new: true, runValidators: true }

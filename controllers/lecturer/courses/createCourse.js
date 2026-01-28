@@ -34,7 +34,7 @@ const createCourseHandler = async (req, res) => {
 
     // Extract course details from request body
     const { title, category, institution, description, level, courseCode } =
-      req.body;
+      req.body || {};
 
     // Validate all required fields are present
     if (!title || !category || !institution || !level || !courseCode) {

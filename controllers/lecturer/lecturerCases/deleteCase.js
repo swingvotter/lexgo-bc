@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/cases");
+const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
 const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
 const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
 const cloudinary = require("../../../config/cloudinary");

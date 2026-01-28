@@ -24,7 +24,7 @@ const createAutoQuiz = async (req, res) => {
             showScoresImmediately,
             numberOfQuestions,
             difficultyLevel
-        } = req.body;
+        } = req.body || {};
 
         const lecturerId = req.userInfo?.id;
 
@@ -55,7 +55,7 @@ const createAutoQuiz = async (req, res) => {
         const durationInMs = parseInt(quizDuration) * 60 * 1000;
         let endTime;
 
-        if (req.body.quizEndTime) {
+        if (req.body?.quizEndTime) {
             endTime = new Date(req.body.quizEndTime);
             // If endTime is before or equal to startTime, or invalid, calculate it based on duration
             if (isNaN(endTime.getTime()) || endTime <= startTime) {

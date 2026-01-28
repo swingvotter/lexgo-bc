@@ -9,8 +9,8 @@ const registerUser = async (req, res) => {
     // Validate request body using Joi schema
     const { error, value } = registerUserSchema.validate(
       {
-        ...req.body,
-        detectedCountry: detectedC ?? req.body.detectedCountry,
+        ...(req.body || {}),
+        detectedCountry: detectedC ?? req.body?.detectedCountry,
       },
       { abortEarly: false, allowUnknown: false }
     );
@@ -26,14 +26,22 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const { email, password, confirmPassword, ...rest } = value;
+    const { email, password, confirmPassword, phoneNumber, ...rest } = value;
 
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists with this email or phone number
+    const existingUser = await User.findOne({
+      $or: [
+        { email },
+        { phoneNumber }
+      ]
+    });
 
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "user already exist" });
+      const field = existingUser.email === email ? "Email" : "Phone number";
+      return res.status(400).json({
+        success: false,
+        message: `${field} is already registered with another account`
+      });
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -41,6 +49,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       ...rest,
       email,
+      phoneNumber,
       password: hashPassword,
     });
 

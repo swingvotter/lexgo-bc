@@ -86,6 +86,8 @@ function createCaseQuizWorker() {
         {
             connection: redis,
             concurrency: 5,
+            lockDuration: 60000, // 60 seconds to allow for deep AI analysis
+            stalledInterval: 30000, // Check for stalled jobs every 30 seconds
         }
     );
 

@@ -127,8 +127,6 @@ userSchema.index(
 );
 
 // Performance & search indexes
-userSchema.index({ phoneNumber: 1 }, { unique: true });
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ firstName: 1, lastName: 1 });

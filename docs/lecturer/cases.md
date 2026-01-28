@@ -1,6 +1,9 @@
-# Lecturer Case API Documentation
+# Lecturer Case Management API
 
-Base URL: `/api/LecturerCases`
+**Base URL:** `/api/LecturerCases`
+**Description:** Manages course-specific case studies and materials. These cases are uploaded by lecturers and can have AI quizzes attached. They are stored in the `lecturerCases` collection.
+
+---
 
 ## 1. Create a Case
 Create a new case for a specific course.

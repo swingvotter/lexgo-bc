@@ -1,4 +1,4 @@
-const LecturerCase = require("../../../models/lecturer/cases");
+const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
 const getPagination = require("../../../utils/pagination");
 const generateSignedUrl = require("../../../utils/cloudinaryUrlSigner");
 

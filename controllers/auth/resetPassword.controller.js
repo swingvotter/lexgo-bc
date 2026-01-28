@@ -3,7 +3,7 @@ const { passwordHasher } = require("../../utils/hashing")
 
 const resetPassword = async (req, res) => {
   try {
-    const { password, confirmPassword } = req.body;
+    const { password, confirmPassword } = req.body || {};
 
     if (!password || !confirmPassword) {
       return res.status(400).json({

@@ -7,7 +7,7 @@ const updateLoginStreak = require("../../utils/streakUtils");
 const loginUser = async (req, res) => {
   try {
 
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
 
 

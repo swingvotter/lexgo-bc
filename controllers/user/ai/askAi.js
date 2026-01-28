@@ -26,7 +26,7 @@ async function askAiHandler(req, res) {
   const session = await mongoose.startSession();
   try {
     // Validate request body
-    const { error, value } = askAiSchema.validate(req.body, { abortEarly: false, allowUnknown: false });
+    const { error, value } = askAiSchema.validate(req.body || {}, { abortEarly: false, allowUnknown: false });
 
     if (error) {
       return res.status(400).json({

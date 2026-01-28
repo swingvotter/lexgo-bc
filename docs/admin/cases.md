@@ -1,13 +1,13 @@
-# Cases API Documentation
-
+# Admin Case Management API
 **Base URL:** `/api/Cases`  
 **Version:** 1.0
+**Collection:** `adminCases`
 
 ---
 
 ## Overview
 
-The Cases API allows for management and retrieval of legal cases. While retrieval is open to all authenticated users, management actions (create, update, delete) are restricted to administrators.
+The Admin Case API allows for management of the global legal case database. These cases are intended for general reference across the platform. While retrieval is open to all authenticated users, management actions (create, update, delete) are restricted to administrators.
 
 ---
 

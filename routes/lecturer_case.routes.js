@@ -5,11 +5,11 @@ const authMiddleware = require("../middleware/authMiddleware");
 const lecturerMiddleware = require("../middleware/lecturerMiddleware");
 const { apiLimiter } = require("../utils/rateLimiter");
 
-const createCase = require("../controllers/lecturer/cases/createCase");
-const deleteCase = require("../controllers/lecturer/cases/deleteCase");
-const getCases = require("../controllers/lecturer/cases/getCases");
+const createCase = require("../controllers/lecturer/lecturerCases/createCase");
+const deleteCase = require("../controllers/lecturer/lecturerCases/deleteCase");
+const getCases = require("../controllers/lecturer/lecturerCases/getCases");
 
-const getAllLecturerCases = require("../controllers/lecturer/cases/getAllLecturerCases");
+const getAllLecturerCases = require("../controllers/lecturer/lecturerCases/getAllLecturerCases");
 
 // Get all cases by lecturer
 router.get("/", authMiddleware, lecturerMiddleware, apiLimiter, getAllLecturerCases);

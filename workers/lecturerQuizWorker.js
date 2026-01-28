@@ -61,6 +61,8 @@ function createLecturerWorker() {
         {
             connection: redis,
             concurrency: 5,
+            lockDuration: 60000, // 60 seconds
+            stalledInterval: 30000,
         }
     );
 

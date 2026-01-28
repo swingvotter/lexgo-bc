@@ -21,7 +21,7 @@ const mongoose = require("mongoose");
 const approveOrRejectEnrollment = async (req, res) => {
     try {
         const { courseId, userId } = req.params;
-        const { action } = req.body || "";
+        const { action } = req.body || {};
         const lecturerId = req.userInfo.id; // Get lecturer ID from auth middleware
 
         if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(userId)) {

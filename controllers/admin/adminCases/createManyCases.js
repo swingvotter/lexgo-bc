@@ -1,4 +1,4 @@
-const Case = require("../../../models/admin/casesModel");
+const AdminCase = require("../../../models/admin/adminCase.Model");
 const createManyCasesSchema = require("../../../validators/caseValidators/createManyCasesValidator");
 
 /**
@@ -9,7 +9,7 @@ const createManyCasesSchema = require("../../../validators/caseValidators/create
  */
 const createManyCases = async (req, res) => {
     try {
-        const { error, value } = createManyCasesSchema.validate(req.body, {
+        const { error, value } = createManyCasesSchema.validate(req.body || {}, {
             abortEarly: false,
             allowUnknown: false,
         });
@@ -35,7 +35,7 @@ const createManyCases = async (req, res) => {
         }
 
         // 2. Check for duplicates in the database
-        const existingCases = await Case.find({
+        const existingCases = await AdminCase.find({
             citation: { $in: citations }
         }).select("citation");
 
@@ -49,7 +49,7 @@ const createManyCases = async (req, res) => {
         }
 
         // 3. Perform bulk insertion
-        const newCases = await Case.insertMany(casesToInsert);
+        const newCases = await AdminCase.insertMany(casesToInsert);
 
         return res.status(201).json({
             success: true,

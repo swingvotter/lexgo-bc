@@ -2,7 +2,7 @@ const Quiz = require("../../../../models/users/quiz.Model");
 
 const submitQuizScoresHandler = async (req, res) => {
   try {
-    const { score } = req.body;
+    const { score } = req.body || {};
     const quizId = req.params.quizId;
     const userId = req.userInfo.id;
 

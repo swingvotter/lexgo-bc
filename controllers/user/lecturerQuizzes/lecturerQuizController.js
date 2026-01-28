@@ -86,7 +86,7 @@ const getQuizForStudent = async (req, res) => {
 const submitQuiz = async (req, res) => {
     try {
         const { quizId } = req.params;
-        const { answers } = req.body; // Array of { questionId, selectedOption }
+        const { answers } = req.body || {}; // Array of { questionId, selectedOption }
         const userId = req.userInfo.id;
 
         const quiz = await LecturerQuiz.findById(quizId);

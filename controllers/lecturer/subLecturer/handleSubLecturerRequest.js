@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 const handleSubLecturerRequest = async (req, res) => {
     try {
         const { courseId, lecturerId } = req.params;
-        const { action } = req.body;
+        const { action } = req.body || {};
         const ownerId = req.userInfo.id;
 
         if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(lecturerId)) {
