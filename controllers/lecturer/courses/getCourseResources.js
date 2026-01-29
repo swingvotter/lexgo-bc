@@ -2,6 +2,7 @@ const path = require("../../../path");
 const Resource = require(path.models.lecturer.resource);
 const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get paginated list of resources (PDFs) for a course
@@ -28,10 +29,9 @@ const getCourseResourcesHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: "valid courseId is required" });
     }
 
+    // Use centralized pagination utility
+    const { page, limit, skip } = getPagination(req.query);
 
-    // Parse pagination parameters with sensible defaults
-    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);  // Cap at 100
     const sort = req.query.sort || "-createdAt";  // Default: newest first
     const select = req.query.fields ? req.query.fields.split(",").join(" ") : "-__v";
 
@@ -43,13 +43,17 @@ const getCourseResourcesHandler = async (req, res) => {
 
     // Build query with pagination
     const filter = { courseId };
-    const total = await Resource.countDocuments(filter);
-    const resources = await Resource.find(filter)
-      .select(select)
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+
+    // Execute queries in parallel
+    const [resources, total] = await Promise.all([
+      Resource.find(filter)
+        .select(select)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Resource.countDocuments(filter)
+    ]);
 
     // Append download URL to each resource pointing to our proxy
     const resourcesWithUrl = resources.map(resource => ({
@@ -59,8 +63,13 @@ const getCourseResourcesHandler = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      meta: { total, page, limit, pages: Math.ceil(total / limit) },
       data: resourcesWithUrl,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
     });
 
   } catch (error) {

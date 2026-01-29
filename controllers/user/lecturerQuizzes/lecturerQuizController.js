@@ -117,12 +117,21 @@ const submitQuiz = async (req, res) => {
         }
 
         // 2. Calculate Score
+        if (!answers || !Array.isArray(answers)) {
+            return res.status(400).json({ success: false, message: "Answers must be an array" });
+        }
+
         let score = 0;
         const processedAnswers = [];
 
         quiz.questions.forEach((q) => {
-            const studentAnswer = answers.find((a) => a.questionId.toString() === q._id.toString());
-            const isCorrect = studentAnswer && studentAnswer.selectedOption === q.correctAnswer;
+            const studentAnswer = answers.find((a) => a.questionId && a.questionId.toString() === q._id.toString());
+
+            // Robust comparison
+            const normalizedStudentAns = studentAnswer?.selectedOption?.toString().trim().toUpperCase();
+            const normalizedCorrectAns = q.correctAnswer?.toString().trim().toUpperCase();
+
+            const isCorrect = normalizedStudentAns === normalizedCorrectAns;
 
             if (isCorrect) score += (quiz.grade.markPerQuestion || 1);
 

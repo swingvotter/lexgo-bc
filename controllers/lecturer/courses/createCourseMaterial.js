@@ -46,6 +46,13 @@ const createCourseMaterialHandler = async (req, res) => {
       "content -_id"
     );
 
+    if (!resourceContents || resourceContents.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No resource content found. Please upload course materials (PDFs) before generating course content.",
+      });
+    }
+
     // Combine all PDF contents into a single string with delimiters
     // This merged content will be sent to AI for processing
     const allContentCombined = resourceContents

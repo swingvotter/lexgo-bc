@@ -17,7 +17,7 @@ const getCourseResourcesHandler = require("../controllers/lecturer/courses/getCo
 const downloadResourceHandler = require("../controllers/lecturer/courses/downloadResource");
 
 // Get all cases
-router.get("/resource/download/:resourceId", authMiddleware, apiLimiter, downloadResourceHandler);
+router.get("/resource/download/:resourceId", authMiddleware, lecturerMiddleware, apiLimiter, downloadResourceHandler);
 router.get("/courseMaterial/status/:jobId", authMiddleware, lecturerMiddleware, apiLimiter, getCourseMaterialStatusHandler);
 
 router.get("/resourceContents/:courseId", authMiddleware, lecturerMiddleware, apiLimiter, getAllResourceContentHandler);

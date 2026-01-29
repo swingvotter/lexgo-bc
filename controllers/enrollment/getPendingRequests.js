@@ -3,6 +3,7 @@ const Enrollment = require(path.models.users.enrollment);
 const Course = require(path.models.lecturer.course);
 const User = require(path.models.users.user);
 const mongoose = require("mongoose");
+const getPagination = require(path.utils.pagination);
 
 
 /**
@@ -47,19 +48,34 @@ const getPendingRequests = async (req, res) => {
             });
         }
 
-        // Fetch pending enrollments with student and course details
-        const pendingEnrollments = await Enrollment.find({
+        const { page, limit, skip } = getPagination(req.query);
+        const filter = {
             course: courseId,
             status: "pending",
-        })
-            .populate("userId", "email firstName lastName")   // Include student info
-            .populate("course", "title courseCode"); // Include course info
+        };
+
+        // Fetch pending enrollments with student and course details
+        const [pendingEnrollments, total] = await Promise.all([
+            Enrollment.find(filter)
+                .populate("userId", "email firstName lastName")   // Include student info
+                .populate("course", "title courseCode") // Include course info
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Enrollment.countDocuments(filter)
+        ]);
 
 
         return res.status(200).json({
             success: true,
             message: "Pending enrollment requests fetched successfully",
             data: pendingEnrollments,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
         console.error("Get pending requests error:", error);

@@ -80,6 +80,11 @@ const lectureQuizSchema = new mongoose.Schema({
       trim: true,
     },
   }],
+  status: {
+    type: String,
+    enum: ["pending", "completed", "failed"],
+    default: "pending",
+  },
 }, { timestamps: true });
 
 const LecturerQuiz = mongoose.model("LecturerQuiz", lectureQuizSchema);

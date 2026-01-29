@@ -108,17 +108,24 @@ const createAutoQuiz = async (req, res) => {
         // 5. Add to Worker Queue
         const numQ = parseInt(numberOfQuestions) || 10;
 
-        const job = await lecturerQuizQueue.add("generate-quiz-from-doc", {
-            quizId: newQuiz._id,
-            lecturerId,
-            courseId: course._id, // Use validated ID
-            textContent,
-            numQuestions: numQ,
-            difficultyLevel: difficultyLevel || "Mixed"
-        }, {
-            attempts: 3,
-            backoff: { type: "exponential", delay: 2000 }
-        });
+        let job;
+        try {
+            job = await lecturerQuizQueue.add("generate-quiz-from-doc", {
+                quizId: newQuiz._id,
+                lecturerId,
+                courseId: course._id, // Use validated ID
+                textContent,
+                numQuestions: numQ,
+                difficultyLevel: difficultyLevel || "Mixed"
+            }, {
+                attempts: 3,
+                backoff: { type: "exponential", delay: 2000 }
+            });
+        } catch (queueErr) {
+            console.error("Queueing job failed:", queueErr);
+            await LecturerQuiz.findByIdAndDelete(newQuiz._id);
+            return res.status(500).json({ success: false, message: "Server error starting generation process" });
+        }
 
         return res.status(202).json({
             success: true,

@@ -96,7 +96,8 @@ const createManualQuiz = async (req, res) => {
             shuffleQuestions: shuffleQuestions === 'true' || shuffleQuestions === true,
             shuffleAnswers: shuffleAnswers === 'true' || shuffleAnswers === true,
             showScoresImmediately: showScoresImmediately === 'true' || showScoresImmediately === true,
-            questions: questionsToSave
+            questions: questionsToSave,
+            status: "completed"
         });
 
         return res.status(201).json({

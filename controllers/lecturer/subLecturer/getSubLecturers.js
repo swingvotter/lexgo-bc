@@ -2,6 +2,7 @@ const path = require("../../../path");
 const SubLecturer = require(path.models.lecturer.subLecturer);
 const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get approved sub-lecturers for a course
@@ -31,15 +32,31 @@ const getSubLecturers = async (req, res) => {
             });
         }
 
-        // Get approved sub-lecturers
-        const subLecturers = await SubLecturer.find({
+        const { page, limit, skip } = getPagination(req.query);
+        const filter = {
             courseId,
             status: "approved",
-        }).populate("lecturerId", "firstName lastName email");
+        };
+
+        // Get approved sub-lecturers with pagination
+        const [subLecturers, total] = await Promise.all([
+            SubLecturer.find(filter)
+                .populate("lecturerId", "firstName lastName email")
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            SubLecturer.countDocuments(filter)
+        ]);
 
         return res.status(200).json({
             success: true,
             data: subLecturers,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
         console.error("Get sub-lecturers error:", error);

@@ -46,7 +46,10 @@ function createLecturerWorker() {
                 // Update the existing quiz with the generated questions
                 if (questionsToSave.length > 0) {
                     await LecturerQuiz.findByIdAndUpdate(quizId, {
-                        $set: { questions: questionsToSave }
+                        $set: {
+                            questions: questionsToSave,
+                            status: "completed"
+                        }
                     });
                 }
 
@@ -56,6 +59,9 @@ function createLecturerWorker() {
 
             } catch (error) {
                 console.error(`Error processing quiz generation for Quiz ID: ${quizId}`, error);
+                await LecturerQuiz.findByIdAndUpdate(quizId, {
+                    $set: { status: "failed" }
+                });
                 throw error;
             }
         },

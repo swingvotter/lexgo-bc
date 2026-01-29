@@ -1,6 +1,7 @@
 const path = require("../../path");
 const Enrollment = require(path.models.users.enrollment);
 const Course = require(path.models.lecturer.course);
+const getPagination = require(path.utils.pagination);
 
 
 /**
@@ -19,11 +20,21 @@ const getEnrolledCourses = async (req, res) => {
     try {
         const userId = req.userInfo.id; // Get student ID from auth middleware
 
-        // Query enrollments with approved status
-        const enrollments = await Enrollment.find({
+        const { page, limit, skip } = getPagination(req.query);
+        const filter = {
             userId,
             status: "approved",
-        }).populate("course", "title courseCode category institution level description courseImageUrl");
+        };
+
+        // Query enrollments with approved status and pagination
+        const [enrollments, total] = await Promise.all([
+            Enrollment.find(filter)
+                .populate("course", "title courseCode category institution level description courseImageUrl")
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Enrollment.countDocuments(filter)
+        ]);
 
         // Map enrollments to return just the course objects
         const courses = enrollments.map((enrollment) => enrollment.course);
@@ -32,6 +43,12 @@ const getEnrolledCourses = async (req, res) => {
             success: true,
             message: "Enrolled courses fetched successfully",
             data: courses,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
         console.error("Get enrolled courses error:", error);

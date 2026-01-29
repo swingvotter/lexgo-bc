@@ -1,5 +1,6 @@
 const path = require("../../../path");
 const LecturerQuiz = require(path.models.lecturer.quiz);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get all quizzes for a specific course
@@ -19,16 +20,29 @@ const getCourseQuizzes = async (req, res) => {
             });
         }
 
-        // Find all quizzes for this course that belong to this lecturer
-        const quizzes = await LecturerQuiz.find({
-            courseId,
-            lecturerId,
-        }).sort({ createdAt: -1 });
+        const { page, limit, skip } = getPagination(req.query);
+
+        const filter = { courseId, lecturerId };
+
+        // Find quizzes for this course that belong to this lecturer with pagination
+        const [quizzes, total] = await Promise.all([
+            LecturerQuiz.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            LecturerQuiz.countDocuments(filter)
+        ]);
 
         return res.status(200).json({
             success: true,
-            count: quizzes.length,
             data: quizzes,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
         console.error("Get Course Quizzes Error:", error);

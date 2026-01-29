@@ -76,20 +76,28 @@ const createCase = async (req, res) => {
         await session.commitTransaction();
 
         // Queue background job for AI quiz generation (Outside transaction)
-        await caseQuizQueue.add(
-            "generate-case-quiz",
-            {
-                caseId: newCase._id,
-                file: {
-                    buffer: req.file.buffer.toString('base64'),
-                    originalname: req.file.originalname
+        try {
+            await caseQuizQueue.add(
+                "generate-case-quiz",
+                {
+                    caseId: newCase._id,
+                    file: {
+                        buffer: req.file.buffer.toString('base64'),
+                        originalname: req.file.originalname
+                    }
+                },
+                {
+                    attempts: 2,
+                    backoff: { type: "exponential", delay: 1000 }
                 }
-            },
-            {
-                attempts: 2,
-                backoff: { type: "exponential", delay: 1000 }
-            }
-        );
+            );
+        } catch (queueErr) {
+            console.error("Queueing case quiz job failed:", queueErr);
+            // Cleanup: remove the case and its quiz entry since the process failed to start
+            await CaseQuiz.findOneAndDelete({ caseId: newCase._id });
+            await LecturerCase.findByIdAndDelete(newCase._id);
+            return res.status(500).json({ success: false, message: "Server error starting quiz generation" });
+        }
 
         return res.status(201).json({
             success: true,

@@ -1,13 +1,7 @@
-const Joi = require("joi");
 const path = require("../../../path");
 const AiHistory = require(path.models.users.aiHistory);
 const User = require(path.models.users.user);
-
-// Validation schema for pagination parameters
-const getAiHistorySchema = Joi.object({
-  page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(20),
-});
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get AI chat history
@@ -26,22 +20,8 @@ async function getAiHistoryHandler(req, res) {
   try {
     const userId = req.userInfo.id;
 
-    // Construct payload for validation
-    const payload = {
-      page: req.query.page,
-      limit: req.query.limit,
-    };
-
-    // Validate query parameters
-    const { error, value } = getAiHistorySchema.validate(payload);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
-
-    const { page, limit } = value;
+    // Use centralized pagination utility
+    const { page, limit, skip } = getPagination(req.query);
 
     // Check user exists
     const userExists = await User.exists({ _id: userId });
@@ -51,8 +31,6 @@ async function getAiHistoryHandler(req, res) {
         message: "User not found",
       });
     }
-
-    const skip = (page - 1) * limit;
 
     // Fetch history and total count in parallel
     const [history, total] = await Promise.all([

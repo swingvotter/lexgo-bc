@@ -1,5 +1,6 @@
 const path = require("../../../path");
 const CourseMaterial = require(path.models.lecturer.courseMaterial);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get all AI-generated materials for a course
@@ -23,10 +24,28 @@ const getCourseMaterialsHandler = async (req, res) => {
       });
     }
 
-    // Fetch materials sorted by newest first
-    const materials = await CourseMaterial.find({ courseId }).sort({ createdAt: -1 });
+    const { page, limit, skip } = getPagination(req.query);
 
-    return res.status(200).json({ success: true, data: materials });
+    // Fetch materials with pagination, sorted by newest first
+    const [materials, total] = await Promise.all([
+      CourseMaterial.find({ courseId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      CourseMaterial.countDocuments({ courseId })
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: materials,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error("Get course materials error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
