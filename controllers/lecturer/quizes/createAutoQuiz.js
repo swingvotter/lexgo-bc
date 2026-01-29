@@ -1,7 +1,8 @@
-const LecturerQuiz = require("../../../models/lecturer/quizes");
-const lecturerQuizQueue = require("../../../queues/lecturerQuizQueue");
-const extractText = require("../../../utils/textExtractor");
-const checkCourseAccess = require("../../../utils/checkCourseAccess");
+const path = require("../../../path");
+const LecturerQuiz = require(path.models.lecturer.quiz);
+const lecturerQuizQueue = require(path.queues.lecturerQuiz);
+const extractText = require(path.utils.textExtractor);
+const checkCourseAccess = require(path.utils.checkCourseAccess);
 
 /**
  * Create a new quiz automatically from document

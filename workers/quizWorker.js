@@ -1,7 +1,8 @@
 const { Worker } = require("bullmq");
 const redis = require("../config/redis");
-const Quiz = require("../models/users/quiz.Model");
-const quizGeneratorGPT = require("../utils/ai/quizGenerator");
+const path = require("../path");
+const Quiz = require(path.models.users.quiz);
+const quizGeneratorGPT = require(path.utils.ai.quizGenerator);
 
 let quizWorker = null;
 

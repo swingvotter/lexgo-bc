@@ -1,4 +1,5 @@
-const Note = require("../../../models/users/noteModel");
+const path = require("../../../path");
+const Note = require(path.models.users.note);
 
 /**
  * Create a new personal note

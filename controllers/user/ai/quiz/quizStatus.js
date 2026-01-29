@@ -1,12 +1,13 @@
-const quizQueue = require("../../../../queues/quizQueue");
-const Quiz = require("../../../../models/users/quiz.Model");
+const path = require("../../../../path");
+const quizQueue = require(path.queues.quiz);
+const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");
 
 const getQuizStatusHandler = async (req, res) => {
   try {
     const { jobId } = req.params;
     const userId = req.userInfo.id; // from auth middleware
-    
+
     // Ensure userId is ObjectId for query
     let userIdObjectId = userId;
     if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {

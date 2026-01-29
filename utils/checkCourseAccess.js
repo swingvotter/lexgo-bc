@@ -1,5 +1,6 @@
-const Course = require("../models/lecturer/courses.Model");
-const SubLecturer = require("../models/lecturer/subLecturer");
+const path = require("../path");
+const Course = require(path.models.lecturer.course);
+const SubLecturer = require(path.models.lecturer.subLecturer);
 
 /**
  * Check if a user has access to manage a course

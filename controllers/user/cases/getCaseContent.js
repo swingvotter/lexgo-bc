@@ -1,8 +1,9 @@
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
-const Enrollment = require("../../../models/users/enrollment.Model");
-const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
-const generateSignedUrl = require("../../../utils/cloudinaryUrlSigner");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
+const CaseQuiz = require(path.models.lecturer.caseQuiz);
+const Enrollment = require(path.models.users.enrollment);
+const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
+const generateSignedUrl = require(path.utils.cloudinaryUrlSigner);
 
 /**
  * Get details of a case including its AI-generated quiz for a student.

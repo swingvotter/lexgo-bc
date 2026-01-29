@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const Course = require("../../../models/lecturer/courses.Model");
-const { uploadPdfBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
-const checkCourseAccess = require("../../../utils/checkCourseAccess");
-const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
-const caseQuizQueue = require("../../../queues/caseQuizQueue");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
+const Course = require(path.models.lecturer.course);
+const { uploadPdfBufferToCloudinary } = require(path.utils.cloudinaryUploader);
+const checkCourseAccess = require(path.utils.checkCourseAccess);
+const CaseQuiz = require(path.models.lecturer.caseQuiz);
+const caseQuizQueue = require(path.queues.caseQuiz);
 
 const createCase = async (req, res) => {
     const session = await mongoose.startSession();

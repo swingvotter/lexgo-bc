@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const path = require("../path");
 const createCourseHandler = require("../controllers/lecturer/courses/createCourse")
-const upload = require("../middleware/multerMiddleware")
+const upload = require(path.middleware.multer)
 
-const authMiddleware = require("../middleware/authMiddleware");
-const lecturerMiddleware = require("../middleware/lecturerMiddleware");
-const { apiLimiter } = require("../utils/rateLimiter");
+const authMiddleware = require(path.middleware.auth);
+const lecturerMiddleware = require(path.middleware.lecturer);
+const { apiLimiter } = require(path.utils.rateLimiter);
 const uploadResourceHandler = require("../controllers/lecturer/courses/uploadResource");
 const createCourseMaterialHandler = require("../controllers/lecturer/courses/createCourseMaterial");
 const getAllResourceContentHandler = require("../controllers/lecturer/courses/getAllContents");

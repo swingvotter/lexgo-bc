@@ -1,5 +1,6 @@
-const AdminCase = require("../../../models/admin/adminCase.Model");
-const createCaseSchema = require("../../../validators/caseValidators/createCaseValidator");
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
+const createCaseSchema = require(path.validators.admin.createCase);
 
 const createCase = async (req, res) => {
   try {

@@ -1,6 +1,6 @@
-// controllers/admin/enrollments/fetchEnrollments.js
-const Enrollment = require("../../../models/users/enrollment.Model");
-const getPagination = require("../../../utils/pagination");
+const path = require("../../../path");
+const Enrollment = require(path.models.users.enrollment);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Fetch all enrollments with pagination and populated fields

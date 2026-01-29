@@ -1,5 +1,5 @@
-// middleware/adminMiddleware.js
-const User = require("../models/users/user.Model")
+const path = require("../path");
+const User = require(path.models.users.user)
 
 const lecturerMiddleware = async (req, res, next) => {
   try {

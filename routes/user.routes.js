@@ -1,6 +1,7 @@
 const express = require("express")
 const router = express.Router()
-const authMiddleware = require("../middleware/authMiddleware")
+const path = require("../path")
+const authMiddleware = require(path.middleware.auth)
 const fetchUserDetails = require("../controllers/user/userInfo/userDetails")
 
 // User info

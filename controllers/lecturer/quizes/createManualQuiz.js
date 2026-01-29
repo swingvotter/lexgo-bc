@@ -1,6 +1,6 @@
-
-const LecturerQuiz = require("../../../models/lecturer/quizes");
-const checkCourseAccess = require("../../../utils/checkCourseAccess");
+const path = require("../../../path");
+const LecturerQuiz = require(path.models.lecturer.quiz);
+const checkCourseAccess = require(path.utils.checkCourseAccess);
 
 
 /**

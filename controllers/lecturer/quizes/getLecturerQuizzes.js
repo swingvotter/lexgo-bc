@@ -1,5 +1,6 @@
-const LecturerQuiz = require("../../../models/lecturer/quizes");
-const getPagination = require("../../../utils/pagination");
+const path = require("../../../path");
+const LecturerQuiz = require(path.models.lecturer.quiz);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Get all quizzes created by a lecturer with pagination

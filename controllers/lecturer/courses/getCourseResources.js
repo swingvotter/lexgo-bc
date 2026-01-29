@@ -1,5 +1,6 @@
-const Resource = require("../../../models/lecturer/resource");
-const Course = require("../../../models/lecturer/courses.Model");
+const path = require("../../../path");
+const Resource = require(path.models.lecturer.resource);
+const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
 
 /**

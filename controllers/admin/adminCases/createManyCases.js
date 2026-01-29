@@ -1,5 +1,6 @@
-const AdminCase = require("../../../models/admin/adminCase.Model");
-const createManyCasesSchema = require("../../../validators/caseValidators/createManyCasesValidator");
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
+const createManyCasesSchema = require(path.validators.admin.createManyCases);
 
 /**
  * Create multiple cases at once

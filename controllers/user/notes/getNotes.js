@@ -1,5 +1,6 @@
-const Note = require("../../../models/users/noteModel")
-const getPagination = require("../../../utils/pagination")
+const path = require("../../../path");
+const Note = require(path.models.users.note)
+const getPagination = require(path.utils.pagination)
 
 /**
  * Get all notes with filtering and pagination

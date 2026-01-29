@@ -1,6 +1,7 @@
-const Quiz = require("../../../../models/users/quiz.Model");
+const path = require("../../../../path");
+const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");
-const getPagination = require("../../../../utils/pagination");
+const getPagination = require(path.utils.pagination);
 
 const getQuizzesHandler = async (req, res) => {
   try {

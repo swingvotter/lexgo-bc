@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const lecturerMiddleware = require("../middleware/lecturerMiddleware");
-const upload = require("../middleware/multerMiddleware");
-const { apiLimiter } = require("../utils/rateLimiter");
+const path = require("../path");
+const authMiddleware = require(path.middleware.auth);
+const lecturerMiddleware = require(path.middleware.lecturer);
+const upload = require(path.middleware.multer);
+const { apiLimiter } = require(path.utils.rateLimiter);
 const createManualQuiz = require("../controllers/lecturer/quizes/createManualQuiz");
 const createAutoQuiz = require("../controllers/lecturer/quizes/createAutoQuiz");
 const getCourseQuizzes = require("../controllers/lecturer/quizes/getCourseQuizzes");

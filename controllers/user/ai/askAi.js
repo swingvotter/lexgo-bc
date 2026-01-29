@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-const AiHistory = require("../../../models/users/aiHitory.model");
-const User = require("../../../models/users/user.Model");
-const chatGpt = require("../../../utils/ai/chatGpt");
+const path = require("../../../path");
+const AiHistory = require(path.models.users.aiHistory);
+const User = require(path.models.users.user);
+const chatGpt = require(path.utils.ai.chatGpt);
 
 // Validation schema for the request body
 const askAiSchema = Joi.object({

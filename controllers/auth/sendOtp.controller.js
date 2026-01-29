@@ -1,7 +1,8 @@
-const User = require("../../models/users/user.Model");
-const sendMail = require("../../utils/mailSender");
-const { otpHasher } = require("../../utils/hashing");
-const otpGenerator = require("../../utils/otpGenerator");
+const path = require("../../path");
+const User = require(path.models.users.user);
+const sendMail = require(path.utils.mailSender);
+const { otpHasher } = require(path.utils.hashing);
+const otpGenerator = require(path.utils.otpGenerator);
 const crypto = require("crypto");
 
 

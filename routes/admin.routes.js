@@ -1,13 +1,13 @@
-// routes/adminRoutes.js
 const express = require("express")
 const router = express.Router()
-const authMiddleware = require("../middleware/authMiddleware")
-const adminMiddleware = require("../middleware/adminMiddleware") // Create this!
+const path = require("../path")
+const authMiddleware = require(path.middleware.auth)
+const adminMiddleware = require(path.middleware.admin)
 const adminFindUsersHandler = require("../controllers/admin/users/fetchUsers")
 const adminFetchCoursesHandler = require("../controllers/admin/courses/fetchCourses")
 const adminFetchEnrollmentsHandler = require("../controllers/admin/enrollments/fetchEnrollments")
 const adminFetchQuizSubmissionsHandler = require("../controllers/admin/quizzes/fetchSubmissions")
-const { apiLimiter } = require("../utils/rateLimiter")
+const { apiLimiter } = require(path.utils.rateLimiter)
 
 // Apply rate limiting, auth, and admin checks
 router.get("/users",

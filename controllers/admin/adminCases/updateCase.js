@@ -1,5 +1,6 @@
-const AdminCase = require("../../../models/admin/adminCase.Model");
-const updateCaseSchema = require("../../../validators/caseValidators/updateCaseValidator");
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
+const updateCaseSchema = require(path.validators.admin.updateCase);
 
 const updateCase = async (req, res) => {
   try {

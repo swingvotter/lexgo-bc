@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const Note = require("../../../models/users/noteModel");
+const path = require("../../../path");
+const Note = require(path.models.users.note);
 
 /**
  * Delete a personal note

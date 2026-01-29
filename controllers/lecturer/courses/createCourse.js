@@ -1,6 +1,7 @@
-const Course = require("../../../models/lecturer/courses.Model");
-const User = require("../../../models/users/user.Model");
-const { uploadImageBufferToCloudinary } = require("../../../utils/CloudinaryBufferUploader");
+const path = require("../../../path");
+const Course = require(path.models.lecturer.course);
+const User = require(path.models.users.user);
+const { uploadImageBufferToCloudinary } = require(path.utils.cloudinaryUploader);
 
 /**
  * Create a new course

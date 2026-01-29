@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
-const Enrollment = require("../../../models/users/enrollment.Model");
-const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
-const User = require("../../../models/users/user.Model");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
+const CaseQuiz = require(path.models.lecturer.caseQuiz);
+const Enrollment = require(path.models.users.enrollment);
+const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
+const User = require(path.models.users.user);
 
 /**
  * Submit answers for a case-attached quiz.

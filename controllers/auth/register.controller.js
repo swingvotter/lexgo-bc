@@ -1,6 +1,7 @@
-const User = require("../../models/users/user.Model");
+const path = require("../../path");
+const User = require(path.models.users.user);
 const bcrypt = require("bcrypt");
-const registerUserSchema = require("../../validators/userValidators/registerUser");
+const registerUserSchema = require(path.validators.user.register);
 
 const registerUser = async (req, res) => {
   try {

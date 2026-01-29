@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const path = require("../path");
 
-const authMiddleware = require("../middleware/authMiddleware");
-const lecturerMiddleware = require("../middleware/lecturerMiddleware");
-const { apiLimiter } = require("../utils/rateLimiter");
+const authMiddleware = require(path.middleware.auth);
+const lecturerMiddleware = require(path.middleware.lecturer);
+const { apiLimiter } = require(path.utils.rateLimiter);
 
 // Student controllers
 const applyToCourseHandler = require("../controllers/enrollment/applyToCourse");

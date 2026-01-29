@@ -1,6 +1,7 @@
-const Resource = require("../../../models/lecturer/resource");
+const path = require("../../../path");
+const Resource = require(path.models.lecturer.resource);
 const axios = require("axios");
-const cloudinaryUrlSigner = require("../../../utils/cloudinaryUrlSigner");
+const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
 
 /**
  * Proxy PDF resource from Cloudinary to the client

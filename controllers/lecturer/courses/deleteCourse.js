@@ -1,15 +1,16 @@
 const mongoose = require("mongoose");
-const Course = require("../../../models/lecturer/courses.Model");
-const Resource = require("../../../models/lecturer/resource");
-const ResourceContent = require("../../../models/lecturer/resourceContent");
-const CourseMaterial = require("../../../models/lecturer/courseMaterial");
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const Enrollment = require("../../../models/users/enrollment.Model");
-const LecturerQuiz = require("../../../models/lecturer/quizes");
-const LecturerQuizSubmission = require("../../../models/users/lecturerQuizSubmission.Model");
-const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
-const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
-const SubLecturer = require("../../../models/lecturer/subLecturer");
+const path = require("../../../path");
+const Course = require(path.models.lecturer.course);
+const Resource = require(path.models.lecturer.resource);
+const ResourceContent = require(path.models.lecturer.resourceContent);
+const CourseMaterial = require(path.models.lecturer.courseMaterial);
+const LecturerCase = require(path.models.lecturer.case);
+const Enrollment = require(path.models.users.enrollment);
+const LecturerQuiz = require(path.models.lecturer.quiz);
+const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
+const CaseQuiz = require(path.models.lecturer.caseQuiz);
+const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
+const SubLecturer = require(path.models.lecturer.subLecturer);
 const cloudinary = require("../../../config/cloudinary");
 
 

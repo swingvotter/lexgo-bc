@@ -1,4 +1,5 @@
-const User = require("../../../models/users/user.Model");
+const path = require("../../../path");
+const User = require(path.models.users.user);
 
 /**
  * Get details of the authenticated user

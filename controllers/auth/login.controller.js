@@ -1,8 +1,9 @@
-const User = require("../../models/users/user.Model");
+const path = require("../../path");
+const User = require(path.models.users.user);
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const { generateAccessToken, generateRefreshToken } = require("../../utils/token");
-const updateLoginStreak = require("../../utils/streakUtils");
+const { generateAccessToken, generateRefreshToken } = require(path.utils.token);
+const updateLoginStreak = require(path.utils.streakUtils);
 
 const loginUser = async (req, res) => {
   try {

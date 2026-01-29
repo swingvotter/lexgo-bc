@@ -1,5 +1,5 @@
-// middleware/adminMiddleware.js
-const User = require("../models/users/user.Model")
+const path = require("../path");
+const User = require(path.models.users.user)
 
 const adminMiddleware = async (req, res, next) => {
   try {
@@ -13,7 +13,7 @@ const adminMiddleware = async (req, res, next) => {
 
     // Option 2: Fetch user from DB to check role (less efficient but more secure)
     const user = await User.findById(req.userInfo.id).select("role");
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,

@@ -1,5 +1,6 @@
-const AdminCase = require("../../../models/admin/adminCase.Model");
-const getPagination = require("../../../utils/pagination")
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
+const getPagination = require(path.utils.pagination)
 
 const getAllCases = async (req, res) => {
   try {

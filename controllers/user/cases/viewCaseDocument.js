@@ -1,7 +1,8 @@
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
 const axios = require("axios");
-const cloudinaryUrlSigner = require("../../../utils/cloudinaryUrlSigner");
-const Enrollment = require("../../../models/users/enrollment.Model");
+const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
+const Enrollment = require(path.models.users.enrollment);
 
 /**
  * Proxy Case PDF document from Cloudinary to the client for streaming/viewing.

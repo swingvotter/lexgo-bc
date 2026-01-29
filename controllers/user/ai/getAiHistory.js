@@ -1,6 +1,7 @@
 const Joi = require("joi");
-const AiHistory = require("../../../models/users/aiHitory.model");
-const User = require("../../../models/users/user.Model");
+const path = require("../../../path");
+const AiHistory = require(path.models.users.aiHistory);
+const User = require(path.models.users.user);
 
 // Validation schema for pagination parameters
 const getAiHistorySchema = Joi.object({

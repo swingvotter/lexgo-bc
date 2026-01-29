@@ -1,6 +1,7 @@
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const getPagination = require("../../../utils/pagination");
-const generateSignedUrl = require("../../../utils/cloudinaryUrlSigner");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
+const getPagination = require(path.utils.pagination);
+const generateSignedUrl = require(path.utils.cloudinaryUrlSigner);
 
 const getCases = async (req, res) => {
     try {

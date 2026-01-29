@@ -1,4 +1,5 @@
-const ResourceContent = require("../../../models/lecturer/resourceContent");
+const path = require("../../../path");
+const ResourceContent = require(path.models.lecturer.resourceContent);
 
 /**
  * Get all resource contents for a course (concatenated)

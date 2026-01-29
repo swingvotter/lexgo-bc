@@ -1,6 +1,7 @@
-const LecturerQuiz = require("../../../models/lecturer/quizes");
-const Enrollment = require("../../../models/users/enrollment.Model");
-const LecturerQuizSubmission = require("../../../models/users/lecturerQuizSubmission.Model");
+const path = require("../../../path");
+const LecturerQuiz = require(path.models.lecturer.quiz);
+const Enrollment = require(path.models.users.enrollment);
+const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
 
 /**
  * Get quiz details for a student

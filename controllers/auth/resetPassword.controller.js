@@ -1,5 +1,6 @@
-const User = require("../../models/users/user.Model");
-const { passwordHasher } = require("../../utils/hashing")
+const path = require("../../path");
+const User = require(path.models.users.user);
+const { passwordHasher } = require(path.utils.hashing);
 
 const resetPassword = async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const AdminCase = require("../../../models/admin/adminCase.Model");
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
 
 const getCaseById = async (req, res) => {
   try {

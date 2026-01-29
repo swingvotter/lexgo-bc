@@ -1,4 +1,5 @@
-const LecturerQuiz = require("../../../models/lecturer/quizes");
+const path = require("../../../path");
+const LecturerQuiz = require(path.models.lecturer.quiz);
 
 /**
  * Delete a quiz

@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const { apiLimiter } = require("../utils/rateLimiter");
+const path = require("../path");
+const authMiddleware = require(path.middleware.auth);
+const { apiLimiter } = require(path.utils.rateLimiter);
 const { getQuizForStudent, submitQuiz } = require("../controllers/user/lecturerQuizzes/lecturerQuizController");
 const getQuizStatus = require("../controllers/user/lecturerQuizzes/getQuizStatus");
 

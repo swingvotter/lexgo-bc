@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
-const LecturerCase = require("../../../models/lecturer/lecturerCase.Model");
-const CaseQuiz = require("../../../models/lecturer/caseQuiz.Model");
-const CaseQuizSubmission = require("../../../models/users/caseQuizSubmission.Model");
+const path = require("../../../path");
+const LecturerCase = require(path.models.lecturer.case);
+const CaseQuiz = require(path.models.lecturer.caseQuiz);
+const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
 const cloudinary = require("../../../config/cloudinary");
 
 const deleteCase = async (req, res) => {

@@ -1,9 +1,10 @@
 const jwt = require("jsonwebtoken");
-const User = require("../../models/users/user.Model");
+const path = require("../../path");
+const User = require(path.models.users.user);
 const {
   generateAccessToken,
   generateRefreshToken,
-} = require("../../utils/token");
+} = require(path.utils.token);
 
 const refreshTokenRotation = async (req, res) => {
   try {

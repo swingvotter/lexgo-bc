@@ -1,6 +1,7 @@
-const SubLecturer = require("../../../models/lecturer/subLecturer");
-const Course = require("../../../models/lecturer/courses.Model");
-const User = require("../../../models/users/user.Model");
+const path = require("../../../path");
+const SubLecturer = require(path.models.lecturer.subLecturer);
+const Course = require(path.models.lecturer.course);
+const User = require(path.models.users.user);
 const mongoose = require("mongoose");
 
 /**

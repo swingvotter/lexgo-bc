@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
-const User = require("../../../models/users/user.Model");
-const Course = require("../../../models/lecturer/courses.Model");
-const Resource = require("../../../models/lecturer/resource");
-const ResourceContent = require("../../../models/lecturer/resourceContent");
+const path = require("../../../path");
+const User = require(path.models.users.user);
+const Course = require(path.models.lecturer.course);
+const Resource = require(path.models.lecturer.resource);
+const ResourceContent = require(path.models.lecturer.resourceContent);
 const {
   uploadPdfBufferToCloudinary,
-} = require("../../../utils/CloudinaryBufferUploader");
+} = require(path.utils.cloudinaryUploader);
 const cloudinary = require("../../../config/cloudinary");
-const cloudinaryUrlSigner = require("../../../utils/cloudinaryUrlSigner");
-const removeNewlines = require("../../../utils/newLineRemover");
-const textExtractor = require("../../../utils/textExtractor");
-const checkCourseAccess = require("../../../utils/checkCourseAccess");
+const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
+const removeNewlines = require(path.utils.newLineRemover);
+const textExtractor = require(path.utils.textExtractor);
+const checkCourseAccess = require(path.utils.checkCourseAccess);
 
 /**
  * Upload a PDF resource to a course

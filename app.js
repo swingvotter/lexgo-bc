@@ -1,9 +1,10 @@
-require("dotenv").config();
 const express = require("express");
 const app = express();
+const path = require("./path");
+require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
-const authMiddleware = require("./middleware/authMiddleware");
+const authMiddleware = require(path.middleware.auth);
 const cors = require("cors");
 
 const AuthRouter = require("./routes/auth.routes");

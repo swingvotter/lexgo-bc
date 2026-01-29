@@ -1,8 +1,8 @@
-// controllers/admin/courses/fetchCourses.js
-const Course = require("../../../models/lecturer/courses.Model");
-const Enrollment = require("../../../models/users/enrollment.Model");
-const User = require("../../../models/users/user.Model");
-const getPagination = require("../../../utils/pagination");
+const path = require("../../../path");
+const Course = require(path.models.lecturer.course);
+const Enrollment = require(path.models.users.enrollment);
+const User = require(path.models.users.user);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Fetch all courses with pagination and enrollment counts

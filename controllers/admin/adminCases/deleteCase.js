@@ -1,4 +1,5 @@
-const AdminCase = require("../../../models/admin/adminCase.Model");
+const path = require("../../../path");
+const AdminCase = require(path.models.admin.case);
 
 // Delete a case by ID
 const deleteCase = async (req, res) => {

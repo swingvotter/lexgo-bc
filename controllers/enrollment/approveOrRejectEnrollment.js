@@ -1,5 +1,6 @@
-const Enrollment = require("../../models/users/enrollment.Model");
-const Course = require("../../models/lecturer/courses.Model");
+const path = require("../../path");
+const Enrollment = require(path.models.users.enrollment);
+const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
 
 /**

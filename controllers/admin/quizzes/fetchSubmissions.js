@@ -1,6 +1,6 @@
-// controllers/admin/quizzes/fetchSubmissions.js
-const LecturerQuizSubmission = require("../../../models/users/lecturerQuizSubmission.Model");
-const getPagination = require("../../../utils/pagination");
+const path = require("../../../path");
+const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
+const getPagination = require(path.utils.pagination);
 
 /**
  * Fetch all student quiz submissions with pagination and populated fields

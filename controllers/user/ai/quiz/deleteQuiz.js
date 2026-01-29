@@ -1,4 +1,5 @@
-const Quiz = require("../../../../models/users/quiz.Model");
+const path = require("../../../../path");
+const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");
 
 const deleteQuizHandler = async (req, res) => {

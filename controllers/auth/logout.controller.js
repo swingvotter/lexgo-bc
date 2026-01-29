@@ -1,6 +1,7 @@
-const User = require("../../models/users/user.Model");
+const path = require("../../path");
+const User = require(path.models.users.user);
 const jwt = require("jsonwebtoken");
-const { safeVerifyToken } = require("../../utils/token");
+const { safeVerifyToken } = require(path.utils.token);
 
 const logoutUser = async (req, res) => {
   try {
