@@ -10,8 +10,8 @@ const getPagination = (query) => {
   let limit = parseInt(query.limit);
   if (isNaN(limit) || limit < 1) {
     limit = 10; // Default
-  } else if (limit > 100) {
-    limit = 100; // Max limit
+  } else if (limit > 50) {
+    limit = 50; // Max limit
   }
   
   // Calculate skip

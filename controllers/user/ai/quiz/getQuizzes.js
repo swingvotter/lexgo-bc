@@ -2,18 +2,32 @@ const path = require("../../../../path");
 const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");
 const getPagination = require(path.utils.pagination);
+const { setCache, getCache, deleteCache} = require(path.utils.cachingData);
+
 
 const getQuizzesHandler = async (req, res) => {
   try {
-    const userId = req.userInfo.id;
 
+    
+    const userId = req.userInfo.id;
+    
     let userIdObjectId = userId;
     if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
       userIdObjectId = new mongoose.Types.ObjectId(userId);
     }
-
+    
     const { page, limit, skip } = getPagination(req.query);
+    
+    const quizKey = `userQuizzes?Page=${page}&limit=${limit}`;
+    const cached = await getCache(quizKey);
 
+    if (cached) {      
+        return res.status(200).json({
+          message: "cached data",
+          data: cached,
+        });
+      }
+    
     const query = { userId: userIdObjectId };
 
     if (req.query.completed !== undefined) {
@@ -39,6 +53,19 @@ const getQuizzesHandler = async (req, res) => {
 
     const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 0;
 
+    const pagination = {
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
+      endIndex: Math.min(page * limit, totalItems),
+    };
+
+    await setCache(quizKey, { quizzes, pagination }, 60);
+
     res.status(200).json({
       message: "Quizzes retrieved successfully",
       quizzes,
@@ -60,4 +87,3 @@ const getQuizzesHandler = async (req, res) => {
 };
 
 module.exports = getQuizzesHandler;
-

@@ -1,3 +1,4 @@
+
 const path = require("path");
 
 module.exports = {
@@ -42,6 +43,7 @@ module.exports = {
         streakUtils: path.join(__dirname, "utils", "streakUtils"),
         textExtractor: path.join(__dirname, "utils", "textExtractor"),
         token: path.join(__dirname, "utils", "token"),
+        cachingData: path.join(__dirname, "utils", "cachingData"),
         ai: {
             chatGpt: path.join(__dirname, "utils", "ai", "chatGpt"),
             courseCreator: path.join(__dirname, "utils", "ai", "coureCreatorGpt"),
@@ -81,4 +83,9 @@ module.exports = {
             register: path.join(__dirname, "validators", "userValidators", "registerUser"),
         },
     },
+    config: {
+        redis: path.join(__dirname, "config", "redis"),
+        db: path.join(__dirname, "config", "db"),
+        cloudinary: path.join(__dirname, "config", "cloudinary"),
+    }
 };
