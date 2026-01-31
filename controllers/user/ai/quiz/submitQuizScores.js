@@ -1,5 +1,6 @@
 const path = require("../../../../path");
 const Quiz = require(path.models.users.quiz);
+const User = require(path.models.users.user);
 
 const submitQuizScoresHandler = async (req, res) => {
   try {
@@ -41,37 +42,31 @@ const submitQuizScoresHandler = async (req, res) => {
 
     quiz.score = score;
     quiz.completed = true;
+    await quiz.save();
 
-    const otherCompletedQuizzes = await Quiz.find({
+    const allCompletedQuizzes = await Quiz.find({
       userId,
       completed: true,
-      _id: { $ne: quizId },
     });
 
-    const currentQuizPercentage = (score / quiz.totalQuestions) * 100;
-    const otherQuizzesPercentages = otherCompletedQuizzes.map(
-      (q) => (q.score / q.totalQuestions) * 100
-    );
+    const totalQuizzes = allCompletedQuizzes.length;
+    const totalPercentageSum = allCompletedQuizzes.reduce((sum, q) => {
+      return sum + (q.score / q.totalQuestions) * 100;
+    }, 0);
+    const averageScore = totalQuizzes > 0 ? Math.round((totalPercentageSum / totalQuizzes) * 100) / 100 : 0;
 
-    const totalQuizzes = otherCompletedQuizzes.length + 1;
-    const totalPercentageSum =
-      otherQuizzesPercentages.reduce((sum, p) => sum + p, 0) +
-      currentQuizPercentage;
-    const totalQuizzesScores =
-      totalQuizzes > 0 ? totalPercentageSum / totalQuizzes : 0;
-
-    quiz.totalQuizzes = totalQuizzes;
-    quiz.totalQuizzesScores = Math.round(totalQuizzesScores * 100) / 100;
-
-    await quiz.save();
+    await User.findByIdAndUpdate(userId, {
+      "quizStatistics.studentGeneratedQuiz.totalQuizzes": totalQuizzes,
+      "quizStatistics.studentGeneratedQuiz.averageScore": averageScore,
+    });
 
     res.status(200).json({
       message: "Quiz score submitted successfully",
       quiz: {
         quizId: quiz._id,
         score: quiz.score,
-        totalQuizzes: quiz.totalQuizzes,
-        totalQuizzesScores: quiz.totalQuizzesScores,
+        totalQuizzes,
+        averageScore,
       },
     });
   } catch (error) {

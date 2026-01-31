@@ -76,15 +76,6 @@ const quizSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    totalQuizzes: {
-      type: Number,
-      default: 0,
-    },
-    totalQuizzesScores: {
-      type: Number,
-      default: 0,
-    },
   },
   {
     timestamps: true,

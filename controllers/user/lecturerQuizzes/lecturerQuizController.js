@@ -2,6 +2,7 @@ const path = require("../../../path");
 const LecturerQuiz = require(path.models.lecturer.quiz);
 const Enrollment = require(path.models.users.enrollment);
 const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
+const User = require(path.models.users.user);
 
 /**
  * Get quiz details for a student
@@ -153,6 +154,22 @@ const submitQuiz = async (req, res) => {
             totalPossibleScore,
             attemptNumber: submissionCount + 1,
             answers: processedAnswers,
+        });
+
+        // 4. Calculate and update course quiz statistics
+        const allCourseSubmissions = await LecturerQuizSubmission.find({
+            studentId: userId,
+        });
+
+        const totalCourseQuizzes = allCourseSubmissions.length;
+        const totalPercentageSum = allCourseSubmissions.reduce((sum, sub) => {
+            return sum + (sub.score / sub.totalPossibleScore) * 100;
+        }, 0);
+        const averageScore = totalCourseQuizzes > 0 ? Math.round((totalPercentageSum / totalCourseQuizzes) * 100) / 100 : 0;
+
+        await User.findByIdAndUpdate(userId, {
+            "quizStatistics.courseQuiz.totalQuizzes": totalCourseQuizzes,
+            "quizStatistics.courseQuiz.averageScore": averageScore,
         });
 
         return res.status(201).json({

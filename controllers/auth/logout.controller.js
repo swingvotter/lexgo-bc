@@ -2,6 +2,7 @@ const path = require("../../path");
 const User = require(path.models.users.user);
 const jwt = require("jsonwebtoken");
 const { safeVerifyToken } = require(path.utils.token);
+const logger = require(path.config.logger);
 
 const logoutUser = async (req, res) => {
   try {
@@ -15,6 +16,7 @@ const logoutUser = async (req, res) => {
         await User.findByIdAndUpdate(decoded.id, {
           refreshToken: null,
         });
+        logger.info("User logged out successfully", { userId: decoded.id });
       }
     }
 
@@ -34,7 +36,8 @@ const logoutUser = async (req, res) => {
       success: true,
       message: "Logout successful",
     });
-  } catch {
+  } catch (error) {
+    logger.error("Logout error", { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: "Server error",

@@ -84,6 +84,20 @@ const userSchema = new mongoose.Schema(
       lessonsCompleted: { type: Number, default: 0 },
       learningStreak: { type: Number, default: 1 },
     },
+    quizStatistics: {
+      studentGeneratedQuiz: {
+        totalQuizzes: { type: Number, default: 0 },
+        averageScore: { type: Number, default: 0 },
+      },
+      caseGeneratedQuiz: {
+        totalQuizzes: { type: Number, default: 0 },
+        averageScore: { type: Number, default: 0 },
+      },
+      courseQuiz: {
+        totalQuizzes: { type: Number, default: 0 },
+        averageScore: { type: Number, default: 0 },
+      },
+    },
     refreshToken: { type: String, default: null },
     detectedCountry: {
       type: String,
@@ -113,8 +127,16 @@ userSchema.pre("save", function () {
         learningStreak: 0,
       };
     }
+    if (!this.quizStatistics) {
+      this.quizStatistics = {
+        studentGeneratedQuiz: { totalQuizzes: 0, averageScore: 0 },
+        caseGeneratedQuiz: { totalQuizzes: 0, averageScore: 0 },
+        courseQuiz: { totalQuizzes: 0, averageScore: 0 },
+      };
+    }
   } else {
     this.progress = undefined;
+    this.quizStatistics = undefined;
   }
 });
 

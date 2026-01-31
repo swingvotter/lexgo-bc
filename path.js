@@ -87,5 +87,6 @@ module.exports = {
         redis: path.join(__dirname, "config", "redis"),
         db: path.join(__dirname, "config", "db"),
         cloudinary: path.join(__dirname, "config", "cloudinary"),
+        logger: path.join(__dirname, "config", "logger"),
     }
 };

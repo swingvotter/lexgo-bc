@@ -92,6 +92,22 @@ const submitCaseQuiz = async (req, res) => {
             answers: processedAnswers,
         }], { session });
 
+        // 8. Calculate and update case quiz statistics
+        const allCaseSubmissions = await CaseQuizSubmission.find({
+            studentId: userId,
+        }).session(session);
+
+        const totalCaseQuizzes = allCaseSubmissions.length;
+        const totalPercentageSum = allCaseSubmissions.reduce((sum, sub) => {
+            return sum + (sub.score / sub.totalPossibleScore) * 100;
+        }, 0);
+        const averageScore = totalCaseQuizzes > 0 ? Math.round((totalPercentageSum / totalCaseQuizzes) * 100) / 100 : 0;
+
+        await User.findByIdAndUpdate(userId, {
+            "quizStatistics.caseGeneratedQuiz.totalQuizzes": totalCaseQuizzes,
+            "quizStatistics.caseGeneratedQuiz.averageScore": averageScore,
+        }, { session });
+
         await session.commitTransaction();
 
         return res.status(201).json({

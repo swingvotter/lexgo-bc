@@ -33,14 +33,15 @@ app.use(
 app.use(helmet());
 
 
-// Compress all responses
-app.use(compression());
 
 // Limit JSON payload to 1MB
 app.use(express.json({ limit: "1mb" }));
 
 // Limit URL-encoded payloads to 1MB
 app.use(express.urlencoded({ limit: "1mb", extended: true }));
+
+// Compress all responses
+//app.use(compression());
 
 app.use(cookieParser());
 

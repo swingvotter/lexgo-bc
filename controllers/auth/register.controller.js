@@ -2,6 +2,7 @@ const path = require("../../path");
 const User = require(path.models.users.user);
 const bcrypt = require("bcrypt");
 const registerUserSchema = require(path.validators.user.register);
+const logger = require(path.config.logger);
 
 const registerUser = async (req, res) => {
   try {
@@ -17,6 +18,10 @@ const registerUser = async (req, res) => {
     );
 
     if (error) {
+      logger.warn("Registration validation failed", {
+        errors: error.details.map((d) => ({ field: d.path.join("."), message: d.message })),
+        email: req.body?.email
+      });
       return res.status(400).json({
         success: false,
         message: "Validation failed",
@@ -39,6 +44,7 @@ const registerUser = async (req, res) => {
 
     if (existingUser) {
       const field = existingUser.email === email ? "Email" : "Phone number";
+      logger.warn("Registration attempt with existing credentials", { field, email, phoneNumber });
       return res.status(400).json({
         success: false,
         message: `${field} is already registered with another account`
@@ -56,6 +62,8 @@ const registerUser = async (req, res) => {
 
     const safeUser = await User.findById(user._id).select("-password");
 
+    logger.info("User registered successfully", { userId: user._id, email, role: user.role, university: user.university });
+
     return res.status(201).json({
       success: true,
       message: "account created successfully",
@@ -71,6 +79,8 @@ const registerUser = async (req, res) => {
       if (field === "email") message = "A user with this email address already exists";
       if (field === "phoneNumber") message = "A user with this phone number already exists";
 
+      logger.warn("Duplicate key error during registration", { field, value: error.keyValue[field] });
+
       return res.status(409).json({
         success: false,
         message,
@@ -78,7 +88,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    console.error("Registration error:", error);
+    logger.error("Registration error", { error: error.message, stack: error.stack, email: req.body?.email });
     return res
       .status(500)
       .json({ success: false, message: "Internal server error during registration" });

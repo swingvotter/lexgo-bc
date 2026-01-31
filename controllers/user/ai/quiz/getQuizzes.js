@@ -9,7 +9,10 @@ const getQuizzesHandler = async (req, res) => {
   try {
 
     
-    const userId = req.userInfo.id;
+    const userId = req.userInfo?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
     
     let userIdObjectId = userId;
     if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
