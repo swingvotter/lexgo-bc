@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const authMiddleware = require(path.middleware.auth);
 const cors = require("cors");
+const compression = require('compression');
 
 const AuthRouter = require("./routes/auth.routes");
 const AdminRouter = require("./routes/admin.routes");
@@ -30,9 +31,19 @@ app.use(
 );
 
 app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+
+// Compress all responses
+app.use(compression());
+
+// Limit JSON payload to 1MB
+app.use(express.json({ limit: "1mb" }));
+
+// Limit URL-encoded payloads to 1MB
+app.use(express.urlencoded({ limit: "1mb", extended: true }));
+
 app.use(cookieParser());
+
 
 // Trust proxy - required for Render, Heroku, etc.
 app.set("trust proxy", 1);

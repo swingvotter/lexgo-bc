@@ -18,6 +18,7 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email })
 
+
     if (!user) {
       return res.status(401).json({ success: false, message: "wrong credentails", doc: "meaning user has not registred or wrong credentials" });
     }

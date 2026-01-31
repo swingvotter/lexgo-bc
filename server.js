@@ -5,9 +5,12 @@ const createQuizWorker = require("./workers/quizWorker")
 const createCourseMaterialWorker = require("./workers/courseMaterialWorker")
 const createLecturerWorker = require("./workers/lecturerQuizWorker")
 const createCaseQuizWorker = require("./workers/caseQuizWorker")
+const mongoose = require("mongoose");
 
 const port = process.env.PORT || 3001
 
+
+//REDIS READY EVENT
 
 // Test connection
 redis.on("connect", () => {
@@ -37,6 +40,17 @@ redis.on("error", (err) => {
 redis.on("close", () => {
   console.log("Redis connection closed");
 });
+
+// Graceful shutdown
+process.on("SIGINT", async () => {
+  console.log("Graceful shutdown...");
+  await mongoose.disconnect();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`server connected on port ${port}`);
