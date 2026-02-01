@@ -9,7 +9,7 @@ const getPagination = (query) => {
   // Parse and validate limit
   let limit = parseInt(query.limit);
   if (isNaN(limit) || limit < 1) {
-    limit = 10; // Default
+    limit = 25; // Default
   } else if (limit > 50) {
     limit = 50; // Max limit
   }

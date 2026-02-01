@@ -8,8 +8,7 @@ const refreshTokenRotation = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
 
-    logger.info(refreshToken);
-    logger.console(refreshToken);
+    console.log(refreshToken);
 
     if (!refreshToken) {
       logger.warn("Token refresh attempt with missing refreshToken");
@@ -67,6 +66,8 @@ const refreshTokenRotation = async (req, res) => {
       message: "token refreshed successfully",
     });
   } catch (error) {
+    console.log(error);
+
     logger.error("Token refresh error", {
       error: error.message,
       stack: error.stack,

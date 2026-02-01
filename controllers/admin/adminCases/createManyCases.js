@@ -28,7 +28,8 @@ const createManyCases = async (req, res) => {
         // 1. Check for internal duplicates in the request body (citation must be unique)
         const citations = casesToInsert.map(c => c.citation);
         const uniqueCitations = new Set(citations);
-        if (uniqueCitations.size !== citations.size) {
+        
+        if (uniqueCitations.size !== citations.length) {
             return res.status(400).json({
                 success: false,
                 message: "Duplicate citations found in the request body"

@@ -15,7 +15,7 @@ const apiLimiter = rateLimit({
 
 const passwordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
@@ -28,7 +28,7 @@ const passwordLimiter = rateLimit({
 
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
