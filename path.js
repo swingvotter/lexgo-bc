@@ -46,6 +46,7 @@ module.exports = {
         cachingData: path.join(__dirname, "utils", "cachingData"),
         ai: {
             chatGpt: path.join(__dirname, "utils", "ai", "chatGpt"),
+            chatGptStream: path.join(__dirname, "utils", "ai", "chatGpt"),
             courseCreator: path.join(__dirname, "utils", "ai", "coureCreatorGpt"),
             lecturerQuizGenerator: path.join(__dirname, "utils", "ai", "lecturerQuizGenerator"),
             quizGenerator: path.join(__dirname, "utils", "ai", "quizGenerator"),

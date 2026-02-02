@@ -84,20 +84,22 @@ const getNotes = async (req, res) => {
     // Calculate pagination metadata
     const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 0
 
+    const pagination = {
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
+      endIndex: Math.min(page * limit, totalItems)
+    };
+
     return res.status(200).json({
       success: true,
       message: "Notes fetched successfully",
       data: notes,
-      pagination: {
-        page,
-        limit,
-        totalItems,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-        startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
-        endIndex: Math.min(page * limit, totalItems)
-      }
+      pagination
     })
 
   } catch (error) {

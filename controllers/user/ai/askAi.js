@@ -3,32 +3,18 @@ const Joi = require("joi");
 const path = require("../../../path");
 const AiHistory = require(path.models.users.aiHistory);
 const User = require(path.models.users.user);
-const chatGpt = require(path.utils.ai.chatGpt);
+const chatGptStream = require(path.utils.ai.chatGptStream);
+const newLineRemover = require(path.utils.newLineRemover);
 
-// Validation schema for the request body
 const askAiSchema = Joi.object({
   question: Joi.string().max(2000).required(),
 });
 
-/**
- * Ask AI a question
- * 
- * @route POST /api/user/ai/ask
- * @access Private - Requires authentication
- * 
- * @description Sends a user's question to the OpenAI API via `chatGpt` utility,
- * stores the question and answer in `AiHistory`, and increments the user's
- * `askAiCount`.
- * 
- * @param {string} req.body.question - The question to ask the AI (max 2000 chars)
- * @returns {Object} The AI's answer and updated Q&A history entry
- */
 async function askAiHandler(req, res) {
   const session = await mongoose.startSession();
-  try {
-    // Validate request body
-    const { error, value } = askAiSchema.validate(req.body || {}, { abortEarly: false, allowUnknown: false });
 
+  try {
+    const { error, value } = askAiSchema.validate(req.body || {});
     if (error) {
       return res.status(400).json({
         success: false,
@@ -37,18 +23,12 @@ async function askAiHandler(req, res) {
     }
 
     const { question } = value;
-
     const userId = req.userInfo.id;
-    const AI_LIMIT = 20; // You can move this to an env variable later
+    const AI_LIMIT = 20;
 
-    // Fetch user and check count BEFORE the expensive AI call
     const user = await User.findById(userId).select("askAiCount");
-
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     if (user.askAiCount >= AI_LIMIT) {
@@ -58,27 +38,38 @@ async function askAiHandler(req, res) {
       });
     }
 
-    // Ask AI (OpenAI integration) - only called if under limit
-    const answer = await chatGpt(question);
+    // 🔹 Set SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    if (!answer) {
-      return res.status(400).json({
-        success: false,
-        message: "there was a problem getting answers from openAi",
-      });
+    // Start OpenAI stream
+    const stream = await chatGptStream(question);
+
+    let fullAnswer = "";
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content;
+
+      if (delta) {
+        fullAnswer += delta;
+
+        // Send chunk immediately to client
+        res.write(`data: ${delta}\n\n`);
+      }
     }
 
-    // --- Start Database Transaction for consistent updates ---
+    // Clean answer before saving
+    const cleanedAnswer = newLineRemover(fullAnswer);
+
+    // --- Transaction ---
     session.startTransaction();
 
-    // Save history to database
-    const [aiEntry] = await AiHistory.create([{
-      userId,
-      question,
-      answer
-    }], { session });
+    const [aiEntry] = await AiHistory.create(
+      [{ userId, question, answer: cleanedAnswer }],
+      { session }
+    );
 
-    // Increment user ask count for usage tracking/limits
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $inc: { askAiCount: 1 } },
@@ -87,29 +78,26 @@ async function askAiHandler(req, res) {
 
     await session.commitTransaction();
 
-    return res.status(201).json({
-      success: true,
-      message: "AI answered successfully",
-      data: {
-        question: aiEntry.question,
-        answer: aiEntry.answer,
-        createdAt: aiEntry.createdAt,
-        askAiCount: updatedUser.askAiCount,
-      },
-    });
+    // Notify client stream is done
+    res.write(`data: [DONE]\n\n`);
+    res.end();
 
   } catch (err) {
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
-    console.error("Error in askAi controller:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    console.error(err);
+
+    // If streaming already started, we must end it properly
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Internal server error" });
+    } else {
+      res.write(`data: [ERROR]\n\n`);
+      res.end();
+    }
   } finally {
     session.endSession();
   }
 }
 
-module.exports = askAiHandler
+module.exports = askAiHandler;

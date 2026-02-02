@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const path = require("../../../path");
 const Note = require(path.models.users.note);
+const { getCache, setCache } = require(path.utils.cachingData);
 
 /**
  * Get a single note by ID
@@ -42,6 +43,18 @@ const getNote = async (req, res) => {
       });
     }
 
+    // Check cache
+    const cacheKey = `note:id=${noteId}:userId=${userId}`;
+    const cached = await getCache(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        success: true,
+        message: "Note fetched successfully",
+        data: cached,
+      });
+    }
+
     // Find note, ensuring it belongs to the user
     const note = await Note.findOne({
       _id: noteId,
@@ -54,6 +67,9 @@ const getNote = async (req, res) => {
         message: "Note not found",
       });
     }
+
+    // Cache and return
+    await setCache(cacheKey, note, 120);
 
     return res.status(200).json({
       success: true,

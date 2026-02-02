@@ -49,6 +49,7 @@ const getPendingRequests = async (req, res) => {
         }
 
         const { page, limit, skip } = getPagination(req.query);
+
         const filter = {
             course: courseId,
             status: "pending",
@@ -66,16 +67,18 @@ const getPendingRequests = async (req, res) => {
         ]);
 
 
+        const pagination = {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        };
+
         return res.status(200).json({
             success: true,
             message: "Pending enrollment requests fetched successfully",
             data: pendingEnrollments,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
-            }
+            pagination,
         });
     } catch (error) {
         console.error("Get pending requests error:", error);

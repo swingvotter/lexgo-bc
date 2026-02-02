@@ -1,138 +1,221 @@
 # AI API Documentation
 
-**Base URL:** `/api/AI`  
+**Base URL:** `/api/ai`  
 **Version:** 1.0
 
 ---
 
 ## Table of Contents
 
-1. [Ask AI](#1-ask-ai)
+1. [Ask AI (Streaming)](#1-ask-ai-streaming)
+2. [AI History](#2-ai-history)
 
 ---
 
-## 1. Ask AI
+## 1. Ask AI (Streaming)
 
-Increments the user's AI question counter. This endpoint tracks how many times a user has interacted with the AI.
+Ask the AI a legal question and receive a **real-time streaming response** using Server-Sent Events (SSE). The response streams word-by-word, similar to ChatGPT.
 
-**Endpoint:** `POST /api/AI/ask-AI`
+**Endpoint:** `POST /api/ai/ask`
 
 ### Authentication
 
-✅ **Required** - This endpoint requires authentication.
+✅ **Required**
 
-Include the access token in the Authorization header:
 ```http
 Authorization: Bearer <accessToken>
 ```
 
 ### Request Body
 
-Currently, no request body is required. The endpoint simply increments the counter.
+| Field | Type | Required | Max Length | Description |
+|-------|------|----------|------------|-------------|
+| `question` | string | ✅ Yes | 2000 chars | The legal question to ask the AI |
 
-**Note:** This endpoint is prepared for future AI integration where you may need to send:
-- `question` - The user's question
-- `context` - Additional context for the AI
-
-### Example Request
-
-```http
-POST /api/AI/ask-AI
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-```
-
-### Success Response (200)
-
+**Example:**
 ```json
 {
-  "success": true,
-  "message": "Ai asked successfully"
+  "question": "What is constitutional law?"
 }
 ```
+
+### Response Format
+
+**⚠️ IMPORTANT:** This endpoint returns **Server-Sent Events (SSE)**, NOT JSON.
+
+**Response Headers:**
+```http
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+```
+
+**Stream Format:**
+```
+data: Constitutional
+
+data:  law
+
+data:  is
+
+data: [DONE]
+```
+
+- Each line starts with `data: ` followed by a text chunk
+- Stream ends with `data: [DONE]`
+- Errors are sent as `data: [ERROR]`
+
+### How It Works
+
+1. **Send POST request** with question in JSON body
+2. **Receive SSE stream** - NOT a JSON response
+3. **Parse each line** starting with `data: `
+4. **Concatenate chunks** to build the full answer
+5. **Stop when** you receive `[DONE]` marker
+6. **Backend auto-saves** question + answer to database
 
 ### Error Responses
 
 | Status | Message | Description |
 |--------|---------|-------------|
-| 401 | `accessToken is absent` | Missing or invalid access token |
-| 401 | `Invalid or expired token` | Token has expired or is invalid |
-| 429 | `Too many AI requests. Please try again later.` | Rate limit exceeded |
-| 500 | `Failed to process AI request. Please try again later.` | Server error |
+| 400 | `Validation failed` | Missing question or exceeds 2000 chars |
+| 401 | `User not found` | Invalid token |
+| 403 | `You have reached your AI question limit of 20.` | Daily quota exceeded |
+| 500 | `Internal server error` | Server/OpenAI error |
+
+**Note:** Errors after streaming starts are sent as `data: [ERROR]`
 
 ### Rate Limiting
 
-- **Limit:** 20 requests per 15 minutes per user
-- **Window:** 15 minutes
-- **Response:** `429 Too Many Requests` if exceeded
+- **Limit:** 20 questions per user
+- **Counter:** Increments after successful response
+- **Field:** User's `askAiCount` field
 
-### Frontend Notes
+### Mobile App Integration
 
-- Ensure the user is authenticated before calling this endpoint
-- Handle rate limiting gracefully by showing appropriate messages
-- The counter is automatically incremented on the server side
-- This endpoint is idempotent - calling it multiple times will increment the counter each time
+**Key Points:**
+1. **Use HTTP streaming** - Your HTTP client must support reading response body as a stream
+2. **Parse SSE format** - Split by newlines, extract content after `data: `
+3. **Concatenate chunks** - Build full answer by appending each chunk
+4. **Update UI in real-time** - Display chunks as they arrive for typing effect
+5. **Handle markers** - Stop on `[DONE]`, show error on `[ERROR]`
 
-### Example Frontend Implementation
+**Example Flow (Pseudocode):**
+```
+1. POST /api/ai/ask with { question: "..." }
+2. Open stream reader on response body
+3. For each line in stream:
+   - If line starts with "data: ":
+     - Extract content after "data: "
+     - If content == "[DONE]": break
+     - If content == "[ERROR]": throw error
+     - Else: append content to answer, update UI
+4. Close stream
+```
 
+**React Native Example:**
 ```javascript
-// Using Axios
-const askAI = async (accessToken) => {
-  try {
-    const response = await axios.post(
-      '/api/AI/ask-AI',
-      {},
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
+const askAI = async (question, token) => {
+  const response = await fetch('http://localhost:3000/api/ai/ask', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ question })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullAnswer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const content = line.slice(6);
+        
+        if (content === '[DONE]') return fullAnswer;
+        if (content === '[ERROR]') throw new Error('Stream error');
+        
+        if (content.trim()) {
+          fullAnswer += content;
+          // Update UI here with fullAnswer
+        }
       }
-    );
-    return response.data;
-  } catch (error) {
-    if (error.response?.status === 429) {
-      // Handle rate limiting
-      console.log('Too many requests. Please wait.');
-    } else if (error.response?.status === 401) {
-      // Handle authentication error - refresh token
-      console.log('Token expired. Refreshing...');
     }
-    throw error;
   }
 };
 ```
 
----
+**Flutter/Dart Example:**
+```dart
+Future<String> askAI(String question, String token) async {
+  final response = await http.post(
+    Uri.parse('http://localhost:3000/api/ai/ask'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode({'question': question}),
+  );
 
-## Future Enhancements
-
-This endpoint is designed to be extended with actual AI functionality. Future versions may include:
-
-- **Request Body:**
-  ```json
-  {
-    "question": "What is contract law?",
-    "context": "I'm studying LL.B Level 300"
-  }
-  ```
-
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Ai asked successfully",
-    "data": {
-      "aiResponse": "Contract law is...",
-      "askAI": 15  // Updated counter
+  String fullAnswer = '';
+  
+  await for (var chunk in response.stream.transform(utf8.decoder)) {
+    final lines = chunk.split('\n');
+    
+    for (var line in lines) {
+      if (line.startsWith('data: ')) {
+        final content = line.substring(6);
+        
+        if (content == '[DONE]') return fullAnswer;
+        if (content == '[ERROR]') throw Exception('Stream error');
+        
+        if (content.trim().isNotEmpty) {
+          fullAnswer += content;
+          // Update UI here
+        }
+      }
     }
   }
-  ```
+  
+  return fullAnswer;
+}
+```
+
+### Important Notes
+
+1. **Response is NOT JSON** - It's a text stream in SSE format
+2. **Must concatenate chunks** - Each chunk is a small piece of text
+3. **First chunk arrives fast** - Typically 1-2 seconds
+4. **Keep connection open** - Don't close until `[DONE]` received
+5. **Backend handles saving** - Question and answer auto-saved to database
+6. **User quota tracked** - `askAiCount` incremented automatically
+
+### Database Storage
+
+After streaming completes, the backend automatically:
+- Saves question and full answer to `aiHistory` collection
+- Increments user's `askAiCount` field
+- Records timestamp
+
+---
+
+## 2. AI History
+
+**Endpoint:** `GET /api/ai/history`  
+**Status:** Not yet implemented
+
+Will allow users to retrieve past AI conversations.
 
 ---
 
 **See also:** 
-- [Authentication API](./auth.md) - For login and token management
-- [Common Reference](./common.md) - For error handling and best practices
-
+- [Authentication API](../auth/index.md) - For login and token management
+- [Common Reference](../general/common.md) - For error handling and best practices

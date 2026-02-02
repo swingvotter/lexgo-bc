@@ -5,9 +5,15 @@ const redis = require(path.config.redis);
 const courseMaterialQueue = new Queue("course-material-generation", {
   connection: redis,
   defaultJobOptions: {
-        removeOnComplete: true, // remove completed jobs automatically
-        removeOnFail: true,     // remove failed jobs automatically
-        attempts: 3,            // retry failed jobs up to 3 times
+        removeOnComplete: {
+            age: 600, // keep completed jobs for 10 minutes (600 seconds)
+            count: 100, // keep last 100 completed jobs
+        },
+        removeOnFail: {
+            age: 600, // keep failed jobs for 10 minutes (600 seconds)
+            count: 100, // keep last 100 failed jobs
+        },
+        attempts: 3, // retry failed jobs up to 3 times
     },
 });
 

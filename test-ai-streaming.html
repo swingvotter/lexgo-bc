@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Streaming Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .answer-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 100px;
+            display: none;
+        }
+
+        .answer-container.active {
+            display: block;
+        }
+
+        .answer-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .answer-text {
+            color: #333;
+            line-height: 1.8;
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #667eea;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Streaming Test</h1>
+        <p class="subtitle">Test your backend AI streaming implementation</p>
+
+        <div class="input-group">
+            <label for="token">Access Token (Bearer Token)</label>
+            <input type="text" id="token" placeholder="Paste your JWT token here" />
+        </div>
+
+        <div class="input-group">
+            <label for="question">Question</label>
+            <textarea id="question" placeholder="Ask anything... e.g., What is constitutional law?">What is constitutional law?</textarea>
+        </div>
+
+        <button id="askBtn" onclick="askAI()">
+            Ask AI
+        </button>
+
+        <div id="answerContainer" class="answer-container">
+            <div class="answer-label">AI Response:</div>
+            <div id="answer" class="answer-text"></div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <div id="error"></div>
+    </div>
+
+    <script>
+        let isStreaming = false;
+
+        async function askAI() {
+            if (isStreaming) return;
+
+            const token = document.getElementById('token').value.trim();
+            const question = document.getElementById('question').value.trim();
+            const answerContainer = document.getElementById('answerContainer');
+            const answerDiv = document.getElementById('answer');
+            const statusDiv = document.getElementById('status');
+            const errorDiv = document.getElementById('error');
+            const askBtn = document.getElementById('askBtn');
+
+            // Clear previous results
+            answerDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+            statusDiv.innerHTML = '';
+            answerContainer.classList.remove('active');
+
+            // Validation
+            if (!token) {
+                errorDiv.innerHTML = '<div class="error">⚠️ Please enter your access token</div>';
+                return;
+            }
+
+            if (!question) {
+                errorDiv.innerHTML = '<div class="error">⚠️ Please enter a question</div>';
+                return;
+            }
+
+            // Start streaming
+            isStreaming = true;
+            askBtn.disabled = true;
+            askBtn.innerHTML = 'Streaming<span class="loading"></span>';
+            answerContainer.classList.add('active');
+            statusDiv.innerHTML = '⏳ Connecting to AI...';
+
+            const startTime = Date.now();
+            let firstChunkTime = null;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/ai/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullAnswer = '';
+                let chunkCount = 0;
+
+                statusDiv.innerHTML = '✅ Connected! Receiving response...';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                        const timeToFirst = firstChunkTime ? ((firstChunkTime - startTime) / 1000).toFixed(2) : 'N/A';
+                        
+                        statusDiv.innerHTML = `✅ Complete! Received ${chunkCount} chunks | Time to first chunk: ${timeToFirst}s | Total time: ${totalTime}s`;
+                        
+                        // Remove cursor
+                        answerDiv.innerHTML = fullAnswer;
+                        break;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const content = line.slice(6);
+                            
+                            // Handle [DONE] or [ERROR] markers
+                            if (content === '[DONE]') {
+                                continue;
+                            }
+                            if (content === '[ERROR]') {
+                                throw new Error('Streaming error from server');
+                            }
+
+                            if (content.trim()) {
+                                if (!firstChunkTime) {
+                                    firstChunkTime = Date.now();
+                                    const timeToFirst = ((firstChunkTime - startTime) / 1000).toFixed(2);
+                                    statusDiv.innerHTML = `✅ First chunk received in ${timeToFirst}s | Streaming...`;
+                                }
+
+                                fullAnswer += content;
+                                chunkCount++;
+                                
+                                // Update display with cursor
+                                answerDiv.innerHTML = fullAnswer + '<span class="cursor"></span>';
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                statusDiv.innerHTML = '❌ Failed';
+            } finally {
+                isStreaming = false;
+                askBtn.disabled = false;
+                askBtn.innerHTML = 'Ask AI';
+            }
+        }
+
+        // Allow Enter key to submit (Ctrl+Enter for new line in textarea)
+        document.getElementById('question').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+                e.preventDefault();
+                askAI();
+            }
+        });
+    </script>
+</body>
+</html>

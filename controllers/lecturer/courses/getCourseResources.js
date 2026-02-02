@@ -61,15 +61,17 @@ const getCourseResourcesHandler = async (req, res) => {
       downloadUrl: `/api/Courses/resource/download/${resource._id}`
     }));
 
+    const pagination = {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+
     return res.status(200).json({
       success: true,
       data: resourcesWithUrl,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
+      pagination,
     });
 
   } catch (error) {

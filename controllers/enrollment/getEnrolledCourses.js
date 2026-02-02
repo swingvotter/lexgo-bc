@@ -21,6 +21,7 @@ const getEnrolledCourses = async (req, res) => {
         const userId = req.userInfo.id; // Get student ID from auth middleware
 
         const { page, limit, skip } = getPagination(req.query);
+
         const filter = {
             userId,
             status: "approved",
@@ -39,16 +40,18 @@ const getEnrolledCourses = async (req, res) => {
         // Map enrollments to return just the course objects
         const courses = enrollments.map((enrollment) => enrollment.course);
 
+        const pagination = {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        };
+
         return res.status(200).json({
             success: true,
             message: "Enrolled courses fetched successfully",
             data: courses,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
-            }
+            pagination
         });
     } catch (error) {
         console.error("Get enrolled courses error:", error);

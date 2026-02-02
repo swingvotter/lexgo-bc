@@ -36,15 +36,17 @@ const getCourseMaterialsHandler = async (req, res) => {
       CourseMaterial.countDocuments({ courseId })
     ]);
 
+    const pagination = {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+
     return res.status(200).json({
       success: true,
       data: materials,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
+      pagination,
     });
   } catch (error) {
     console.error("Get course materials error:", error);

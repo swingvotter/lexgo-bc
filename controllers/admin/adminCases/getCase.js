@@ -14,7 +14,7 @@ const getCaseById = async (req, res) => {
       });
     }
 
-    // Step 2: Find the case by ID
+    // Find the case by ID
     const foundCase = await AdminCase.findById(id).lean();
 
     if (!foundCase) {
@@ -24,7 +24,6 @@ const getCaseById = async (req, res) => {
       });
     }
 
-    // Step 3: Return the case
     return res.status(200).json({
       success: true,
       data: foundCase,
