@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const path = require("../../path")
+const path = require('../../path')
 const authMiddleware = require(path.middleware.auth)
 const adminMiddleware = require(path.middleware.admin)
 const adminFindUsersHandler = require("../../controllers/v1/admin/users/fetchUsers")

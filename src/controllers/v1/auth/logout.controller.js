@@ -1,4 +1,4 @@
-const path = require("../../path");
+const path = require('../../../path');
 const User = require(path.models.users.user);
 const jwt = require("jsonwebtoken");
 const { safeVerifyToken } = require(path.utils.token);

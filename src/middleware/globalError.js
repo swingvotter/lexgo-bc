@@ -1,4 +1,4 @@
-const path = require("../path");
+const path = require('../path');
 const logger = require(path.config.logger);
 
 const globalErrorHandler = (err, req, res, next) => {

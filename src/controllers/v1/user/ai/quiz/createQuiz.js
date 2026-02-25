@@ -1,4 +1,4 @@
-const path = require("../../../../path");
+const path = require('../../../../../path');
 const quizQueue = require(path.queues.v1.quiz);
 
 const generateQuizHandler = async (req, res) => {

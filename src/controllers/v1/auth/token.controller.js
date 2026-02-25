@@ -1,4 +1,4 @@
-const path = require("../../path");
+const path = require('../../../path');
 const { rotateRefreshToken } = require(path.services.v1.auth.token);
 const logger = require(path.config.logger);
 const asyncHandler = require(path.utils.asyncHandler);

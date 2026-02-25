@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const Enrollment = require(path.models.users.enrollment);
 const getPagination = require(path.utils.pagination);
 

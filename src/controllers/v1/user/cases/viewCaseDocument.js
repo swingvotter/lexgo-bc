@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const LecturerCase = require(path.models.lecturer.case);
 const axios = require("axios");
 const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);

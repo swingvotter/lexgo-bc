@@ -1,4 +1,4 @@
-const path = require("../../../../path");
+const path = require('../../../../../path');
 const Quiz = require(path.models.users.quiz);
 const User = require(path.models.users.user);
 

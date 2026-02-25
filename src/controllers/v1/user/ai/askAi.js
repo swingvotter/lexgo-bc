@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-const path = require("../../../path");
+const path = require('../../../../path');
 const AiHistory = require(path.models.users.aiHistory);
 const User = require(path.models.users.user);
 const chatGptStream = require(path.utils.ai.chatGptStream);

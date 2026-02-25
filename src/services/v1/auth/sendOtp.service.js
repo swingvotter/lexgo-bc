@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../path');
 const User = require(path.models.users.user);
 const sendMail = require(path.utils.mailSender);
 const { otpHasher } = require(path.utils.hashing);

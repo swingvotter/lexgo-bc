@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const path = require("../../path");
+const path = require('../../path');
 const upload = require(path.middleware.multer);
 const authMiddleware = require(path.middleware.auth);
 const lecturerMiddleware = require(path.middleware.lecturer);

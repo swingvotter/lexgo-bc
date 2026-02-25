@@ -1,4 +1,4 @@
-const path = require("../path");
+const path = require('../path');
 const redis  = require(path.config.redis);
 
 const setCache = async (key, value, expirationInSeconds) => {

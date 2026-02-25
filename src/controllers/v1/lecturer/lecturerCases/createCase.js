@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const path = require("../../../path");
+const path = require('../../../../path');
 const LecturerCase = require(path.models.lecturer.case);
 const Course = require(path.models.lecturer.course);
 const { uploadPdfBufferToCloudinary } = require(path.utils.cloudinaryUploader);

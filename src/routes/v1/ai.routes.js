@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const path = require("../../path")
+const path = require('../../path')
 const authMiddleware = require(path.middleware.auth)
 const askAiHandler = require("../../controllers/v1/user/ai/askAi")
 const getAiHistoryHandler = require("../../controllers/v1/user/ai/getAiHistory")

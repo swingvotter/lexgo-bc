@@ -1,4 +1,4 @@
-const path = require("../../path");
+const path = require('../../../path');
 const registerUserSchema = require(path.validators.v1.user.register);
 const { registerUser: registerUserService } = require(path.services.v1.auth.register);
 const logger = require(path.config.logger);

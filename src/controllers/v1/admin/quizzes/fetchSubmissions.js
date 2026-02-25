@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
 const getPagination = require(path.utils.pagination);
 

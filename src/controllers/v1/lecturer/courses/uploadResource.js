@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const path = require("../../../path");
+const path = require('../../../../path');
 const User = require(path.models.users.user);
 const Course = require(path.models.lecturer.course);
 const Resource = require(path.models.lecturer.resource);
@@ -7,7 +7,7 @@ const ResourceContent = require(path.models.lecturer.resourceContent);
 const {
   uploadPdfBufferToCloudinary,
 } = require(path.utils.cloudinaryUploader);
-const cloudinary = require("../../../config/cloudinary");
+const cloudinary = require(path.config.cloudinary);
 const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
 const removeNewlines = require(path.utils.newLineRemover);
 const textExtractor = require(path.utils.textExtractor);

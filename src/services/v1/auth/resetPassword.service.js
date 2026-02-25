@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../path');
 const User = require(path.models.users.user);
 const { passwordHasher } = require(path.utils.hashing);
 const AppError = require(path.error.appError);

@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const LecturerQuiz = require(path.models.lecturer.quiz);
 const lecturerQuizQueue = require(path.queues.v1.lecturerQuiz);
 const extractText = require(path.utils.textExtractor);

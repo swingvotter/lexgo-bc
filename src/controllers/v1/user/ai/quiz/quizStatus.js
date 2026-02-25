@@ -1,4 +1,4 @@
-const path = require("../../../../path");
+const path = require('../../../../../path');
 const quizQueue = require(path.queues.v1.quiz);
 const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");

@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const LecturerCase = require(path.models.lecturer.case);
 const getPagination = require(path.utils.pagination);
 const generateSignedUrl = require(path.utils.cloudinaryUrlSigner);

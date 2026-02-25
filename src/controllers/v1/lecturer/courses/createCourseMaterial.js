@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const ResourceContent = require(path.models.lecturer.resourceContent);
 const Course = require(path.models.lecturer.course);
 const CourseMaterial = require(path.models.lecturer.courseMaterial);

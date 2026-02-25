@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const path = require("../../path")
+const path = require('../../path')
 const authMiddleware = require(path.middleware.auth)
 const getNotes = require("../../controllers/v1/user/notes/getNotes")
 const getNote = require("../../controllers/v1/user/notes/getNote")

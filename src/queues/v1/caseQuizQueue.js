@@ -1,5 +1,5 @@
 const { Queue } = require("bullmq");
-const path = require("../../path");
+const path = require('../../path');
 const redis = require(path.config.redis);
 
 const caseQuizQueue = new Queue("case-quiz-generation", {

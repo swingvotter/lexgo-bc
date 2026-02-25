@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const path = require("../../path");
+const path = require('../../path');
 const createCourseHandler = require("../../controllers/v1/lecturer/courses/createCourse")
 const upload = require(path.middleware.multer)
 

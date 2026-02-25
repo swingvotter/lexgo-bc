@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../path');
 const User = require(path.models.users.user);
 const bcrypt = require("bcrypt");
 const { generateAccessToken, generateRefreshToken } = require(path.utils.token);

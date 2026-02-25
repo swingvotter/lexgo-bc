@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const CourseMaterial = require(path.models.lecturer.courseMaterial);
 const getPagination = require(path.utils.pagination);
 

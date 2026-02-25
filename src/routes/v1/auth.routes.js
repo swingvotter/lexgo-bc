@@ -1,5 +1,5 @@
 const express = require("express")
-const path = require("../../path")
+const path = require('../../path')
 const registerUser = require("../../controllers/v1/auth/register.controller")
 const loginUser = require("../../controllers/v1/auth/login.controller")
 const logoutUser = require("../../controllers/v1/auth/logout.controller")

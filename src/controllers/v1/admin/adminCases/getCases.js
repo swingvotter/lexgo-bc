@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const AdminCase = require(path.models.admin.case);
 const getPagination = require(path.utils.pagination)
 

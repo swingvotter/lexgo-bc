@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const AiHistory = require(path.models.users.aiHistory);
 const User = require(path.models.users.user);
 const getPagination = require(path.utils.pagination);

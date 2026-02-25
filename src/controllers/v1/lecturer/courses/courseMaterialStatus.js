@@ -1,4 +1,4 @@
-const path = require("../../../path");
+const path = require('../../../../path');
 const courseMaterialQueue = require(path.queues.v1.courseMaterial);
 const CourseMaterial = require(path.models.lecturer.courseMaterial);
 const mongoose = require("mongoose");

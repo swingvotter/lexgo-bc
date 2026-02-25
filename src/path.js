@@ -1,5 +1,5 @@
 
-const path = require("path");
+const path = require('path');
 
 module.exports = {
     // MODELS (Unversioned - Single source of truth for database schema)

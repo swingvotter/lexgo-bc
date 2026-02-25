@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const path = require("../../../path");
+const path = require('../../../path');
 const User = require(path.models.users.user);
 const { generateAccessToken, generateRefreshToken } = require(path.utils.token);
 const AppError = require(path.error.appError);

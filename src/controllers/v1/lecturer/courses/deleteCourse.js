@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const path = require("../../../path");
+const path = require('../../../../path');
 const Course = require(path.models.lecturer.course);
 const Resource = require(path.models.lecturer.resource);
 const ResourceContent = require(path.models.lecturer.resourceContent);
@@ -11,7 +11,7 @@ const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission)
 const CaseQuiz = require(path.models.lecturer.caseQuiz);
 const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
 const SubLecturer = require(path.models.lecturer.subLecturer);
-const cloudinary = require("../../../config/cloudinary");
+const cloudinary = require(path.config.cloudinary);
 
 
 /**
