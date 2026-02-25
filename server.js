@@ -1,10 +1,10 @@
-const app = require("./app")
-const connectDb = require("./config/db")
-const redis = require("./config/redis")
-const createQuizWorker = require("./workers/quizWorker")
-const createCourseMaterialWorker = require("./workers/courseMaterialWorker")
-const createLecturerWorker = require("./workers/lecturerQuizWorker")
-const createCaseQuizWorker = require("./workers/caseQuizWorker")
+const app = require("./src/app")
+const connectDb = require("./src/config/db")
+const redis = require("./src/config/redis")
+const createQuizWorker = require("./src/workers/v1/quizWorker")
+const createCourseMaterialWorker = require("./src/workers/v1/courseMaterialWorker")
+const createLecturerWorker = require("./src/workers/v1/lecturerQuizWorker")
+const createCaseQuizWorker = require("./src/workers/v1/caseQuizWorker")
 const mongoose = require("mongoose");
 
 const port = process.env.PORT || 3001
