@@ -1,7 +1,10 @@
 const path = require('../../../../path');
 const AiHistory = require(path.models.users.aiHistory);
 const User = require(path.models.users.user);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get AI chat history
@@ -17,52 +20,37 @@ const getPagination = require(path.utils.pagination);
  * @returns {Object} Paginated list of AI history entries
  */
 async function getAiHistoryHandler(req, res) {
-  try {
-    const userId = req.userInfo.id;
+  const userId = req.userInfo.id;
 
-    // Use centralized pagination utility
-    const { page, limit, skip } = getPagination(req.query);
-
-    // Check user exists
-    const userExists = await User.exists({ _id: userId });
-    if (!userExists) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Fetch history and total count in parallel
-    const [history, total] = await Promise.all([
-      AiHistory.find({ userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
-      AiHistory.countDocuments({ userId: userId }),
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      message: "AI history fetched successfully",
-      data: {
-        history,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      },
-    });
-  } catch (err) {
-    console.error("Error in getAiHistory controller:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  const userExists = await User.exists({ _id: userId });
+  if (!userExists) {
+    logger.warn("AI history user missing", { userId });
+    throw new AppError("User not found", 404);
   }
+
+  const result = await cursorPagination({
+    model: AiHistory,
+    filter: { userId },
+    limit: Number(req.query.limit || 25),
+    cursor: req.query.cursor || null,
+    projection: {},
+    sort: { _id: -1 },
+  });
+
+  logger.info("AI history fetched", {
+    userId,
+    limit: Number(req.query.limit || 25),
+    cursor: req.query.cursor || null,
+    count: result.data.length,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "AI history fetched successfully",
+    aiHistory: result.data,
+    nextCursor: result.nextCursor,
+    hasMore: result.hasMore
+  });
 }
 
-module.exports = getAiHistoryHandler;
+module.exports = asyncHandler(getAiHistoryHandler);

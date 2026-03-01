@@ -8,7 +8,6 @@ const aiHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true, // Every history must be linked to a user
-      index: true,    // Helps with queries by user
     },
     question: {
       type: String,
@@ -28,8 +27,8 @@ const aiHistorySchema = new mongoose.Schema(
   }
 );
 
-// Compound index for efficient sorting by user and creation date
-aiHistorySchema.index({ userId: 1, createdAt: -1 });
+// Compound index for efficient sorting by user and id
+aiHistorySchema.index({ userId: 1, _id: -1 });
 
 const AiHistory = mongoose.model("aiHistory",aiHistorySchema) 
 module.exports = AiHistory

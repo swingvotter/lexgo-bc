@@ -1,5 +1,8 @@
 const path = require('../../../../path');
 const User = require(path.models.users.user);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get details of the authenticated user
@@ -13,34 +16,27 @@ const User = require(path.models.users.user);
  * @returns {Object} User profile object
  */
 const fetchUserDetails = async (req, res) => {
-  try {
-    const userId = req.userInfo?.id;
+  const userId = req.userInfo?.id;
 
-    if (!userId) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized" });
-    }
-
-    // Fetch user details excluding sensitive fields
-    const user = await User.findById(userId)
-      .select("-password -refreshToken -passwordReset -__v");
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    return res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error" });
+  if (!userId) {
+    logger.warn("User info unauthorized", { userId: null });
+    throw new AppError("Unauthorized", 401);
   }
+
+  // Fetch user details excluding sensitive fields
+  const user = await User.findById(userId)
+    .select("-password -refreshToken -passwordReset -__v");
+
+  if (!user) {
+    logger.warn("User not found", { userId });
+    throw new AppError("User not found", 404);
+  }
+
+  logger.info("User info fetched", { userId });
+  return res.status(200).json({
+    success: true,
+    user,
+  });
 };
 
-module.exports = fetchUserDetails;
+module.exports = asyncHandler(fetchUserDetails);

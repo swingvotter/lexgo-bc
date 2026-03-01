@@ -3,7 +3,8 @@ const router = express.Router();
 const path = require('../../path');
 const authMiddleware = require(path.middleware.auth);
 const { apiLimiter } = require(path.utils.rateLimiter);
-const { getQuizForStudent, submitQuiz } = require("../../controllers/v1/user/lecturerQuizzes/lecturerQuizController");
+const getQuizForStudent = require("../../controllers/v1/user/lecturerQuizzes/getQuizForStudent");
+const { submitQuiz } = require("../../controllers/v1/user/lecturerQuizzes/submitQuizController");
 const getQuizStatus = require("../../controllers/v1/user/lecturerQuizzes/getQuizStatus");
 
 // Get quiz details (questions etc.)

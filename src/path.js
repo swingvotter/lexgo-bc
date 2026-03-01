@@ -1,5 +1,6 @@
 
 const path = require('path');
+const { cursorPagination } = require('./utils/cursorPagination');
 
 module.exports = {
     // MODELS (Unversioned - Single source of truth for database schema)
@@ -48,6 +49,13 @@ module.exports = {
                 verifyOtp: path.join(__dirname, "services", "v1", "auth", "verifyOtp.service"),
                 resetPassword: path.join(__dirname, "services", "v1", "auth", "resetPassword.service"),
             },
+            user: {
+                getNotes: path.join(__dirname, "services", "v1", "user", "getNotes.service"),
+                getNote: path.join(__dirname, "services", "v1", "user", "getNote.service"),
+                createNote: path.join(__dirname, "services", "v1", "user", "createNote.service"),
+                updateNote: path.join(__dirname, "services", "v1", "user", "updateNote.service"),
+                deleteNote: path.join(__dirname, "services", "v1", "user", "deleteNote.service"),
+            },
         },
         v2: {}
     },
@@ -63,6 +71,7 @@ module.exports = {
         newLineRemover: path.join(__dirname, "utils", "newLineRemover"),
         otpGenerator: path.join(__dirname, "utils", "otpGenerator"),
         pagination: path.join(__dirname, "utils", "pagination"),
+        cursorPagination: path.join(__dirname, "utils", "cursorPagination"),
         rateLimiter: path.join(__dirname, "utils", "rateLimiter"),
         streakUtils: path.join(__dirname, "utils", "streakUtils"),
         textExtractor: path.join(__dirname, "utils", "textExtractor"),

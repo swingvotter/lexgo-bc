@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
 const path = require('../../../../path');
-const Note = require(path.models.users.note);
+const { updateNoteService } = require(path.services.v1.user.updateNote);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Update an existing note
@@ -19,77 +20,22 @@ const Note = require(path.models.users.note);
  * @returns {Object} The updated note object
  */
 const updateNote = async (req, res) => {
-  try {
-    const userId = req.userInfo?.id;
+  const note = await updateNoteService({
+    userId: req.userInfo?.id,
+    noteId: req.params.id,
+    title: req.body?.title,
+    legalTopic: req.body?.legalTopic,
+    importanceLevel: req.body?.importanceLevel,
+    content: req.body?.content
+  });
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: user must log in",
-      });
-    }
+  logger.info("Note updated", { userId: req.userInfo?.id, noteId: req.params.id });
 
-    const noteId = req.params.id;
-
-    if (!noteId) {
-      return res.status(400).json({
-        success: false,
-        message: "Note ID is required",
-      });
-    }
-
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(noteId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid note ID format",
-      });
-    }
-
-    const { title, legalTopic, importanceLevel, content } = req.body || {};
-
-    // Check if at least one field is provided for update
-    if (!title && !legalTopic && !importanceLevel && !content) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one field is required to update",
-      });
-    }
-
-    // Build update object with only provided fields (partial update)
-    const updateFields = {};
-    if (title) updateFields.title = title;
-    if (legalTopic) updateFields.legalTopic = legalTopic;
-    if (importanceLevel) updateFields.importanceLevel = importanceLevel;
-    if (content) updateFields.content = content;
-
-    // Find and update the note, ensuring it belongs to the user
-    // { new: true } returns the document AFTER update
-    const note = await Note.findOneAndUpdate(
-      { _id: noteId, userId: userId },
-      { $set: updateFields },
-      { new: true, runValidators: true }
-    );
-
-    if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: "Note not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Note updated successfully",
-      data: note,
-    });
-  } catch (error) {
-    console.error("Update note error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update note. Please try again.",
-    });
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Note updated successfully",
+    data: note,
+  });
 };
 
-module.exports = updateNote;
+module.exports = asyncHandler(updateNote);

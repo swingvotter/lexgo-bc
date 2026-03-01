@@ -1,5 +1,7 @@
 const path = require('../../../../path');
-const Note = require(path.models.users.note);
+const { createNoteService } = require(path.services.v1.user.createNote);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Create a new personal note
@@ -17,26 +19,16 @@ const Note = require(path.models.users.note);
  * @returns {Object} The created note object
  */
 const createNote = async (req, res) => {
-  try {
-    const userId = req.userInfo?.id;
+  
+    const note = await createNoteService({
+      userId: req.userInfo?.id,
+      title: req.body?.title,
+      legalTopic: req.body?.legalTopic,
+      importanceLevel: req.body?.importanceLevel,
+      content: req.body?.content
+    });
 
-    if (!userId) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized: user must login first" });
-    }
-
-    const { title, legalTopic, importanceLevel, content } = req.body || {};
-
-    // Validate required fields
-    if (!title || !legalTopic || !importanceLevel || !content) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
-    }
-
-    // Create the note associated with the user
-    const note = await Note.create({ userId, title, legalTopic, importanceLevel, content });
+    logger.info("Note created", { userId: req.userInfo?.id, noteId: note?._id });
 
     return res.status(201).json({
       success: true,
@@ -44,12 +36,7 @@ const createNote = async (req, res) => {
       data: note
     });
 
-  } catch (error) {
-    console.error("Create note error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Failed to create note. Please try again." });
-  }
+
 };
 
-module.exports = createNote;
+module.exports = asyncHandler(createNote);

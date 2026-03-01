@@ -5,6 +5,9 @@ const CaseQuiz = require(path.models.lecturer.caseQuiz);
 const Enrollment = require(path.models.users.enrollment);
 const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
 const User = require(path.models.users.user);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Submit answers for a case-attached quiz.
@@ -12,66 +15,68 @@ const User = require(path.models.users.user);
  */
 const submitCaseQuiz = async (req, res) => {
     const session = await mongoose.startSession();
-    try {
-        const { caseId } = req.params;
-        const { answers } = req.body || {}; // Array of { questionId, selectedOption }
-        const userId = req.userInfo.id;
 
-        // 1. Fetch the Case
-        const foundCase = await LecturerCase.findById(caseId);
-        if (!foundCase) {
-            return res.status(404).json({ success: false, message: "Case not found" });
-        }
+    const { caseId } = req.params;
+    const { answers } = req.body || {}; // Array of { questionId, selectedOption }
+    const userId = req.userInfo.id;
 
-        // 2. Check Enrollment
-        const enrollment = await Enrollment.findOne({
-            userId,
-            course: foundCase.courseId,
-            status: "approved",
+    // 1. Fetch the Case
+    const foundCase = await LecturerCase.findById(caseId);
+    if (!foundCase) {
+        logger.warn("Case missing", { caseId, userId });
+        throw new AppError("Case not found", 404);
+    }
+
+    // 2. Check Enrollment
+    const enrollment = await Enrollment.findOne({
+        userId,
+        course: foundCase.courseId,
+        status: "approved",
+    });
+    if (!enrollment) {
+        logger.warn("Case denied", { caseId, userId });
+        throw new AppError("Unauthorized: You must be enrolled and approved.", 403);
+    }
+
+    // 3. Fetch the Quiz
+    const caseQuiz = await CaseQuiz.findOne({ caseId });
+    const quizQuestions = caseQuiz?.questions || [];
+
+    if (quizQuestions.length === 0) {
+        logger.warn("Case quiz missing", { caseId, userId });
+        throw new AppError("This case has no quiz attached or it is not yet generated.", 400);
+    }
+
+    // 4. Calculate Score
+    if (!answers || !Array.isArray(answers)) {
+        logger.warn("Case answers invalid", { caseId, userId });
+        throw new AppError("Answers must be an array", 400);
+    }
+
+    let score = 0;
+    const processedAnswers = [];
+
+    quizQuestions.forEach((q) => {
+        const studentAnswer = answers.find((a) => a.questionId && a.questionId.toString() === q._id.toString());
+
+        // Robust comparison: trim and ignore case for letter-based answers (A, B, C, D)
+        const normalizedStudentAns = studentAnswer?.selectedOption?.toString().trim().toUpperCase();
+        const normalizedCorrectAns = q.correctAnswer?.toString().trim().toUpperCase();
+
+        const isCorrect = normalizedStudentAns === normalizedCorrectAns;
+
+        if (isCorrect) score += 1;
+
+        processedAnswers.push({
+            questionId: q._id,
+            selectedOption: studentAnswer ? studentAnswer.selectedOption : null,
+            isCorrect,
         });
-        if (!enrollment) {
-            return res.status(403).json({ success: false, message: "Unauthorized: You must be enrolled and approved." });
-        }
+    });
 
-        // 3. Fetch the Quiz
-        const caseQuiz = await CaseQuiz.findOne({ caseId });
-        const quizQuestions = caseQuiz?.questions || [];
+    const totalPossibleScore = quizQuestions.length;
 
-        if (quizQuestions.length === 0) {
-            return res.status(400).json({ success: false, message: "This case has no quiz attached or it is not yet generated." });
-        }
-
-        // 4. Calculate Score
-        if (!answers || !Array.isArray(answers)) {
-            return res.status(400).json({ success: false, message: "Answers must be an array" });
-        }
-
-        let score = 0;
-        const processedAnswers = [];
-
-        quizQuestions.forEach((q) => {
-            const studentAnswer = answers.find((a) => a.questionId && a.questionId.toString() === q._id.toString());
-
-            // Robust comparison: trim and ignore case for letter-based answers (A, B, C, D)
-            const normalizedStudentAns = studentAnswer?.selectedOption?.toString().trim().toUpperCase();
-            const normalizedCorrectAns = q.correctAnswer?.toString().trim().toUpperCase();
-
-            const isCorrect = normalizedStudentAns === normalizedCorrectAns;
-
-            if (isCorrect) score += 1;
-
-            processedAnswers.push({
-                questionId: q._id,
-                selectedOption: studentAnswer ? studentAnswer.selectedOption : null,
-                isCorrect,
-            });
-        });
-
-        const totalPossibleScore = quizQuestions.length;
-
-        // Start Transaction for mutations
-        session.startTransaction();
-
+    const result = await session.withTransaction(async () => {
         // 5. Check submission count for lesson progress increment
         const submissionCount = await CaseQuizSubmission.countDocuments({ caseId, studentId: userId }).session(session);
 
@@ -108,28 +113,21 @@ const submitCaseQuiz = async (req, res) => {
             "quizStatistics.caseGeneratedQuiz.averageScore": averageScore,
         }, { session });
 
-        await session.commitTransaction();
+        return { submission, submissionCount };
+    }).finally(() => session.endSession());
 
-        return res.status(201).json({
-            success: true,
-            message: "Case quiz submitted successfully",
-            data: {
-                score,
-                totalPossibleScore,
-                submissionId: submission._id,
-                attemptNumber: submissionCount + 1,
-                attemptsRemaining: "unlimited"
-            },
-        });
-    } catch (error) {
-        if (session.inTransaction()) {
-            await session.abortTransaction();
-        }
-        console.error("Submit Case Quiz Error:", error);
-        return res.status(500).json({ success: false, message: "Server error", error: error.message });
-    } finally {
-        session.endSession();
-    }
+    logger.info("Case quiz saved", { caseId, userId, score });
+    return res.status(201).json({
+        success: true,
+        message: "Case quiz submitted successfully",
+        data: {
+            score,
+            totalPossibleScore,
+            submissionId: result.submission._id,
+            attemptNumber: result.submissionCount + 1,
+            attemptsRemaining: "unlimited"
+        },
+    });
 };
 
-module.exports = submitCaseQuiz;
+module.exports = asyncHandler(submitCaseQuiz);

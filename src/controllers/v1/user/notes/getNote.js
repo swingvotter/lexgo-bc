@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
 const path = require('../../../../path');
-const Note = require(path.models.users.note);
-const { getCache, setCache } = require(path.utils.cachingData);
+const { getNoteService } = require(path.services.v1.user.getNote);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get a single note by ID
@@ -16,73 +16,18 @@ const { getCache, setCache } = require(path.utils.cachingData);
  * @returns {Object} The requested note
  */
 const getNote = async (req, res) => {
-  try {
-    const userId = req.userInfo?.id;
+  const note = await getNoteService({
+    userId: req.userInfo?.id,
+    noteId: req.params.id
+  });
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: user must log in",
-      });
-    }
+  logger.info("Note fetched", { userId: req.userInfo?.id, noteId: req.params.id });
 
-    const noteId = req.params.id;
-
-    if (!noteId) {
-      return res.status(400).json({
-        success: false,
-        message: "Note ID is required",
-      });
-    }
-
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(noteId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid note ID format",
-      });
-    }
-
-    // Check cache
-    const cacheKey = `note:id=${noteId}:userId=${userId}`;
-    const cached = await getCache(cacheKey);
-
-    if (cached) {
-      return res.status(200).json({
-        success: true,
-        message: "Note fetched successfully",
-        data: cached,
-      });
-    }
-
-    // Find note, ensuring it belongs to the user
-    const note = await Note.findOne({
-      _id: noteId,
-      userId: userId,
-    });
-
-    if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: "Note not found",
-      });
-    }
-
-    // Cache and return
-    await setCache(cacheKey, note, 120);
-
-    return res.status(200).json({
-      success: true,
-      message: "Note fetched successfully",
-      data: note,
-    });
-  } catch (error) {
-    console.error("Get note error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch note. Please try again.",
-    });
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Note fetched successfully",
+    data: note,
+  });
 };
 
-module.exports = getNote;
+module.exports = asyncHandler(getNote);

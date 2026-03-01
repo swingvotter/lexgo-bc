@@ -32,6 +32,8 @@ const noteSchema = new mongoose.Schema(
 );
 
 // Avoid duplicate titles per user for scale and data consistency
-noteSchema.index({ userId: 1, title: 1 }, { unique: true });
+noteSchema.index({ userId: 1 }, { unique: true });
+
+noteSchema.index({ title: "text", legalTopic: "text"});
 
 module.exports = mongoose.model("Note", noteSchema);

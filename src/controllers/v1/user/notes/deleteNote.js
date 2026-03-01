@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
 const path = require('../../../../path');
-const Note = require(path.models.users.note);
+const { deleteNoteService } = require(path.services.v1.user.deleteNote);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Delete a personal note
@@ -15,52 +16,17 @@ const Note = require(path.models.users.note);
  * @returns {Object} Success message
  */
 const deleteNote = async (req, res) => {
-  try {
-    const noteId = req.params.id;
-    const userId = req.userInfo?.id;
+  await deleteNoteService({
+    userId: req.userInfo?.id,
+    noteId: req.params.id
+  });
 
-    if (!noteId) {
-      return res.status(400).json({
-        success: false,
-        message: "Note ID is missing",
-      });
-    }
+  logger.info("Note deleted", { userId: req.userInfo?.id, noteId: req.params.id });
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: login required",
-      });
-    }
-
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(noteId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid note ID format",
-      });
-    }
-
-    // Find and delete the note, ensuring it belongs to the user
-    const note = await Note.findOneAndDelete({ _id: noteId, userId: userId });
-
-    if (!note) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Note not found or unauthorized" });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Note deleted successfully",
-    });
-  } catch (error) {
-    console.error("Delete note error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete note. Please try again.",
-    });
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Note deleted successfully",
+  });
 };
 
-module.exports = deleteNote;
+module.exports = asyncHandler(deleteNote);

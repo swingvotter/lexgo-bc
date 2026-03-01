@@ -1,25 +1,24 @@
 const path = require('../../../../../path');
 const Quiz = require(path.models.users.quiz);
 const mongoose = require("mongoose");
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 
 const getQuizzesHandler = async (req, res) => {
-  try {
-
-    
     const userId = req.userInfo?.id;
     if (!userId) {
-      return res.status(401).json({ message: "Authentication required" });
+      logger.warn("Quiz list unauthorized", { userId: null });
+      throw new AppError("Authentication required", 401);
     }
-    
+
     let userIdObjectId = userId;
     if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
       userIdObjectId = new mongoose.Types.ObjectId(userId);
     }
-    
-    const { page, limit, skip } = getPagination(req.query);
-    
+
     const query = { userId: userIdObjectId };
 
     if (req.query.completed !== undefined) {
@@ -33,38 +32,28 @@ const getQuizzesHandler = async (req, res) => {
       }
     }
 
-    const [quizzes, totalItems] = await Promise.all([
-      Quiz.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .select('-__v')
-        .lean(),
-      Quiz.countDocuments(query)
-    ]);
+    const result = await cursorPagination({
+      model: Quiz,
+      filter: query,
+      limit: Number(req.query.limit || 25),
+      cursor: req.query.cursor || null,
+      projection: {},
+      sort: { _id: -1 }
+    });
 
-    const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 0;
-
-    const pagination = {
-      page,
-      limit,
-      totalItems,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-      startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
-      endIndex: Math.min(page * limit, totalItems),
-    };
+    logger.info("Quizzes retrieved", {
+      userId: userIdObjectId,
+      limit: Number(req.query.limit || 25),
+      cursor: req.query.cursor || null,
+      count: result.data.length,
+    });
 
     res.status(200).json({
       message: "Quizzes retrieved successfully",
-      quizzes,
-      pagination,
+      quizzes: result.data,
+      nextCursor: result.nextCursor,
+      hasMore: result.hasMore,
     });
-  } catch (error) {
-    console.error("Get quizzes error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
-module.exports = getQuizzesHandler;
+module.exports = asyncHandler(getQuizzesHandler);
