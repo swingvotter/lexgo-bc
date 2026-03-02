@@ -1,62 +1,61 @@
 const path = require('../../../../path');
 const LecturerCase = require(path.models.lecturer.case);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
 const generateSignedUrl = require(path.utils.cloudinaryUrlSigner);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 const getCases = async (req, res) => {
-    try {
-        const { title, category, sortedBy, sortOrder } = req.query;
-        const { courseId } = req.params;
+    const { title, category, sortOrder } = req.query;
+    const { courseId } = req.params;
 
-        if (!courseId) {
-            return res.status(400).json({ success: false, message: "Course ID is required" });
-        }
-
-        const { page, limit, skip } = getPagination(req.query);
-
-        const queryObject = { courseId };
-
-        if (title) {
-            queryObject.title = { $regex: title, $options: "i" };
-        }
-
-        if (category) {
-            queryObject.caseCategory = { $regex: category, $options: "i" };
-        }
-
-        let sortObject = { _id: "desc" }; // Default sort by newest (using _id)
-
-        if (sortedBy) {
-            const direction = sortOrder === "desc" ? "desc" : "asc";
-            sortObject = { [sortedBy]: direction };
-        }
-
-        const cases = await LecturerCase.find(queryObject)
-            .sort(sortObject)
-            .skip(skip)
-            .limit(limit)
-            .lean(); // Convert to plain JavaScript objects
-
-        const casesWithUrls = cases.map(c => ({
-            ...c,
-            url: c.caseDocumentPublicId ? generateSignedUrl(c.caseDocumentPublicId) : null
-        }));
-
-        const total = await LecturerCase.countDocuments(queryObject);
-
-        return res.status(200).json({
-            success: true,
-            count: casesWithUrls.length,
-            total,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-            data: casesWithUrls,
-        });
-
-    } catch (error) {
-        console.error("Get cases error:", error);
-        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    if (!courseId) {
+        logger.warn("Cases missing course", { courseId });
+        throw new AppError("Course ID is required", 400);
     }
+
+    const limit = Number(req.query.limit || 25);
+    const cursor = req.query.cursor || null;
+
+    const queryObject = { courseId };
+
+    if (title) {
+        queryObject.title = { $regex: title, $options: "i" };
+    }
+
+    if (category) {
+        queryObject.caseCategory = { $regex: category, $options: "i" };
+    }
+
+    const sortObject = { _id: sortOrder === "asc" ? 1 : -1 };
+
+    const [result, total] = await Promise.all([
+        cursorPagination({
+            model: LecturerCase,
+            filter: queryObject,
+            limit,
+            cursor,
+            projection: {},
+            sort: sortObject,
+        }),
+        LecturerCase.countDocuments(queryObject)
+    ]);
+
+    const casesWithUrls = result.data.map(c => ({
+        ...(c.toObject ? c.toObject() : c),
+        url: c.caseDocumentPublicId ? generateSignedUrl(c.caseDocumentPublicId) : null
+    }));
+
+    logger.info("Cases fetched", { courseId, count: casesWithUrls.length, limit, cursor });
+    return res.status(200).json({
+        success: true,
+        count: casesWithUrls.length,
+        total,
+        data: casesWithUrls,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+    });
 };
 
-module.exports = getCases;
+module.exports = asyncHandler(getCases);

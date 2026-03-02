@@ -2,6 +2,9 @@ const path = require('../../../../path');
 const Resource = require(path.models.lecturer.resource);
 const axios = require("axios");
 const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Proxy PDF resource from Cloudinary to the client
@@ -16,49 +19,38 @@ const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
  * @param {string} req.params.resourceId - The ID of the resource to download
  */
 const downloadResourceHandler = async (req, res) => {
-    try {
-        const { resourceId } = req.params;
+    const { resourceId } = req.params;
 
-        const resource = await Resource.findById(resourceId);
-        if (!resource) {
-            return res.status(404).json({ success: false, message: "Resource not found" });
-        }
-
-        const signedUrl = cloudinaryUrlSigner(resource.publicId);
-
-        const response = await axios({
-            method: 'get',
-            url: signedUrl,
-            responseType: 'stream'
-        });
-
-        const contentType = resource.fileExtension || 'application/octet-stream';
-        const fileName = resource.fileName || `resource-${resourceId}`;
-        const isPdf = contentType === 'application/pdf';
-
-        res.setHeader('Content-Type', contentType);
-        res.setHeader(
-            'Content-Disposition',
-            `${isPdf ? 'inline' : 'attachment'}; filename="${fileName}"`
-        );
-
-        if (response.headers['content-length']) {
-            res.setHeader('Content-Length', response.headers['content-length']);
-        }
-
-        response.data.pipe(res);
-
-    } catch (error) {
-        console.error("Download resource error:", error);
-
-        if (!res.headersSent) {
-            res.status(500).json({
-                success: false,
-                message: "Error fetching resource"
-            });
-        }
+    const resource = await Resource.findById(resourceId);
+    if (!resource) {
+        logger.warn("Resource missing", { resourceId });
+        throw new AppError("Resource not found", 404);
     }
+
+    const signedUrl = cloudinaryUrlSigner(resource.publicId);
+
+    const response = await axios({
+        method: 'get',
+        url: signedUrl,
+        responseType: 'stream'
+    });
+
+    const contentType = resource.fileExtension || 'application/octet-stream';
+    const fileName = resource.fileName || `resource-${resourceId}`;
+    const isPdf = contentType === 'application/pdf';
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+        'Content-Disposition',
+        `${isPdf ? 'inline' : 'attachment'}; filename="${fileName}"`
+    );
+
+    if (response.headers['content-length']) {
+        res.setHeader('Content-Length', response.headers['content-length']);
+    }
+
+    logger.info("Resource download", { resourceId });
+    response.data.pipe(res);
 };
 
-
-module.exports = downloadResourceHandler;
+module.exports = asyncHandler(downloadResourceHandler);

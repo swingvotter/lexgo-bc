@@ -67,5 +67,7 @@ const courseMaterialSchema = new Schema(
   { timestamps: true }
 );
 
+courseMaterialSchema.index({ courseId: 1, _id: -1 });
+
 const CourseMaterial =  mongoose.model("CourseMaterial", courseMaterialSchema);
 module.exports = CourseMaterial

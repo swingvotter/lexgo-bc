@@ -42,8 +42,17 @@ app.use(express.json({ limit: "200kb" }));
 // Limit URL-encoded payloads to 1MB
 app.use(express.urlencoded({ limit: "200kb", extended: true }));
 
-// Compress all responses
-app.use(compression());
+// Compress all responses (skip SSE to avoid buffering)
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers.accept?.includes("text/event-stream")) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  })
+);
 
 app.use(cookieParser());
 

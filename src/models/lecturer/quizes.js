@@ -87,5 +87,7 @@ const lectureQuizSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+lectureQuizSchema.index({ lecturerId: 1, courseId: 1, _id: -1 });
+
 const LecturerQuiz = mongoose.model("LecturerQuiz", lectureQuizSchema);
 module.exports = LecturerQuiz;

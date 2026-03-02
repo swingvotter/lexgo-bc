@@ -6,56 +6,64 @@ const { uploadPdfBufferToCloudinary } = require(path.utils.cloudinaryUploader);
 const checkCourseAccess = require(path.utils.checkCourseAccess);
 const CaseQuiz = require(path.models.lecturer.caseQuiz);
 const caseQuizQueue = require(path.queues.v1.caseQuiz);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 const createCase = async (req, res) => {
     const session = await mongoose.startSession();
-    try {
-        const { title, sourceOfCase, caseCode, caseCategory } = req.body || {};
-        const { courseId } = req.params;
-        const lecturerId = req.userInfo.id;
+    const { title, sourceOfCase, caseCode, caseCategory } = req.body || {};
+    const { courseId } = req.params;
+    const lecturerId = req.userInfo.id;
+    let newCase;
 
-        if (!courseId) {
-            return res.status(400).json({ success: false, message: "Course ID is required" });
-        }
+    if (!courseId) {
+        logger.warn("Case missing course", { lecturerId });
+        throw new AppError("Course ID is required", 400);
+    }
 
-        if (!title || !sourceOfCase || !caseCode || !caseCategory) {
-            return res.status(400).json({ success: false, message: "All fields are required" });
-        }
+    if (!title || !sourceOfCase || !caseCode || !caseCategory) {
+        logger.warn("Case missing fields", { courseId, lecturerId });
+        throw new AppError("All fields are required", 400);
+    }
 
-        // Check if user has access to this course (owner or sub-lecturer)
-        const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
+    // Check if user has access to this course (owner or sub-lecturer)
+    const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
 
-        if (!course) {
-            return res.status(404).json({ success: false, message: "Course not found" });
-        }
+    if (!course) {
+        logger.warn("Case course missing", { courseId, lecturerId });
+        throw new AppError("Course not found", 404);
+    }
 
-        if (!hasAccess) {
-            return res.status(403).json({ success: false, message: "You do not have access to this course" });
-        }
+    if (!hasAccess) {
+        logger.warn("Case denied", { courseId, lecturerId });
+        throw new AppError("You do not have access to this course", 403);
+    }
 
 
-        // Check if case with same title already exists in this course
-        const existingCase = await LecturerCase.findOne({ courseId, title });
-        if (existingCase) {
-            return res.status(409).json({ success: false, message: "A case with this title already exists in this course" });
-        }
+    // Check if case with same title already exists in this course
+    const existingCase = await LecturerCase.findOne({ courseId, title });
+    if (existingCase) {
+        logger.warn("Case duplicate", { courseId, lecturerId, title });
+        throw new AppError("A case with this title already exists in this course", 409);
+    }
 
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: "Case document (PDF) is required" });
-        }
+    if (!req.file) {
+        logger.warn("Case missing file", { courseId, lecturerId });
+        throw new AppError("Case document (PDF) is required", 400);
+    }
 
-        let caseDocumentPublicId = "";
+    const uploadResult = await uploadPdfBufferToCloudinary(req.file.buffer);
+    if (!uploadResult) {
+        logger.warn("Case upload failed", { courseId, lecturerId });
+        throw new AppError("Case document upload failed", 400);
+    }
 
-        const uploadResult = await uploadPdfBufferToCloudinary(req.file.buffer);
-        if (uploadResult) {
-            caseDocumentPublicId = uploadResult.public_id;
-        }
+    const caseDocumentPublicId = uploadResult.public_id;
 
-        // --- Start Database Transaction ---
-        session.startTransaction();
-
+    await session.withTransaction(async () => {
         // Create the Case first
-        const [newCase] = await LecturerCase.create([{
+        [newCase] = await LecturerCase.create([{
             lecturerId,
             courseId,
             title,
@@ -73,47 +81,28 @@ const createCase = async (req, res) => {
             status: "pending"
         }], { session });
 
-        await session.commitTransaction();
-
-        // Queue background job for AI quiz generation (Outside transaction)
-        try {
-            await caseQuizQueue.add(
-                "generate-case-quiz",
-                {
-                    caseId: newCase._id,
-                    file: {
-                        buffer: req.file.buffer.toString('base64'),
-                        originalname: req.file.originalname
-                    }
-                },
-                {
-                    attempts: 2,
-                    backoff: { type: "exponential", delay: 1000 }
+        await caseQuizQueue.add(
+            "generate-case-quiz",
+            {
+                caseId: newCase._id,
+                file: {
+                    buffer: req.file.buffer.toString('base64'),
+                    originalname: req.file.originalname
                 }
-            );
-        } catch (queueErr) {
-            console.error("Queueing case quiz job failed:", queueErr);
-            // Cleanup: remove the case and its quiz entry since the process failed to start
-            await CaseQuiz.findOneAndDelete({ caseId: newCase._id });
-            await LecturerCase.findByIdAndDelete(newCase._id);
-            return res.status(500).json({ success: false, message: "Server error starting quiz generation" });
-        }
+            },
+            {
+                attempts: 2,
+                backoff: { type: "exponential", delay: 1000 }
+            }
+        );
+    }).finally(() => session.endSession());
 
-        return res.status(201).json({
-            success: true,
-            message: "Case created successfully. Quiz is being generated in the background.",
-            data: newCase
-        });
-
-    } catch (error) {
-        if (session.inTransaction()) {
-            await session.abortTransaction();
-        }
-        console.error("Create case error:", error);
-        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
-    } finally {
-        session.endSession();
-    }
+    logger.info("Case created", { caseId: newCase?._id, courseId, lecturerId });
+    return res.status(201).json({
+        success: true,
+        message: "Case created successfully. Quiz is being generated in the background.",
+        data: newCase
+    });
 };
 
-module.exports = createCase;
+module.exports = asyncHandler(createCase);

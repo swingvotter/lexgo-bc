@@ -2,6 +2,9 @@ const path = require('../../../path');
 const Enrollment = require(path.models.users.enrollment);
 const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Approve or reject a student's enrollment request
@@ -20,73 +23,56 @@ const mongoose = require("mongoose");
  * @returns {Object} The updated enrollment record
  */
 const approveOrRejectEnrollment = async (req, res) => {
-    try {
-        const { courseId, userId } = req.params;
-        const { action } = req.body || {};
-        const lecturerId = req.userInfo.id; // Get lecturer ID from auth middleware
+    const { courseId, userId } = req.params;
+    const { action } = req.body || {};
+    const lecturerId = req.userInfo.id; // Get lecturer ID from auth middleware
 
-        if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid course ID or student ID",
-            });
-        }
-
-        // Validate the action parameter
-        if (!action || !["approve", "reject"].includes(action)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid action. Must be 'approve' or 'reject'",
-            });
-        }
-
-        // Verify the course exists
-        const course = await Course.findById(courseId);
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: "Course not found",
-            });
-        }
-
-        // Authorization: Only the course owner can manage enrollments
-        if (course.lecturerId.toString() !== lecturerId) {
-            return res.status(403).json({
-                success: false,
-                message: "You are not authorized to manage enrollments for this course",
-            });
-        }
-
-        // Find the pending enrollment for this specific student and course
-        const enrollment = await Enrollment.findOne({
-            userId,
-            course: courseId,
-            status: "pending",
-        });
-
-        if (!enrollment) {
-            return res.status(404).json({
-                success: false,
-                message: "No pending enrollment found for this student",
-            });
-        }
-
-        // Update enrollment status
-        enrollment.status = action === "approve" ? "approved" : "rejected";
-        await enrollment.save();
-
-        return res.status(200).json({
-            success: true,
-            message: `Enrollment ${action === "approve" ? "approved" : "rejected"} successfully`,
-            data: enrollment,
-        });
-    } catch (error) {
-        console.error("Approve/reject enrollment error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
+    if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(userId)) {
+        logger.warn("Enrollment invalid ids", { courseId, userId, lecturerId });
+        throw new AppError("Invalid course ID or student ID", 400);
     }
+
+    // Validate the action parameter
+    if (!action || !["approve", "reject"].includes(action)) {
+        logger.warn("Enrollment invalid action", { action, courseId, userId, lecturerId });
+        throw new AppError("Invalid action. Must be 'approve' or 'reject'", 400);
+    }
+
+    // Verify the course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+        logger.warn("Enrollment course missing", { courseId, lecturerId });
+        throw new AppError("Course not found", 404);
+    }
+
+    // Authorization: Only the course owner can manage enrollments
+    if (course.lecturerId.toString() !== lecturerId) {
+        logger.warn("Enrollment not authorized", { courseId, lecturerId });
+        throw new AppError("You are not authorized to manage enrollments for this course", 403);
+    }
+
+    // Find the pending enrollment for this specific student and course
+    const enrollment = await Enrollment.findOne({
+        userId,
+        course: courseId,
+        status: "pending",
+    });
+
+    if (!enrollment) {
+        logger.warn("Enrollment pending missing", { courseId, userId, lecturerId });
+        throw new AppError("No pending enrollment found for this student", 404);
+    }
+
+    // Update enrollment status
+    enrollment.status = action === "approve" ? "approved" : "rejected";
+    await enrollment.save();
+
+    logger.info("Enrollment updated", { courseId, userId, status: enrollment.status });
+    return res.status(200).json({
+        success: true,
+        message: `Enrollment ${action === "approve" ? "approved" : "rejected"} successfully`,
+        data: enrollment,
+    });
 };
 
-module.exports = approveOrRejectEnrollment;
+module.exports = asyncHandler(approveOrRejectEnrollment);

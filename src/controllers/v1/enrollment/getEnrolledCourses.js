@@ -1,7 +1,9 @@
 const path = require('../../../path');
 const Enrollment = require(path.models.users.enrollment);
 const Course = require(path.models.lecturer.course);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 
 /**
@@ -17,49 +19,46 @@ const getPagination = require(path.utils.pagination);
  * @returns {Object} Array of enrolled course objects
  */
 const getEnrolledCourses = async (req, res) => {
-    try {
-        const userId = req.userInfo.id; // Get student ID from auth middleware
+    const userId = req.userInfo.id; // Get student ID from auth middleware
 
-        const { page, limit, skip } = getPagination(req.query);
+    const limit = Number(req.query.limit || 25);
+    const cursor = req.query.cursor || null;
 
-        const filter = {
-            userId,
-            status: "approved",
-        };
+    const filter = {
+        userId,
+        status: "approved",
+    };
 
-        // Query enrollments with approved status and pagination
-        const [enrollments, total] = await Promise.all([
-            Enrollment.find(filter)
-                .populate("course", "title courseCode category institution level description courseImageUrl")
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Enrollment.countDocuments(filter)
-        ]);
-
-        // Map enrollments to return just the course objects
-        const courses = enrollments.map((enrollment) => enrollment.course);
-
-        const pagination = {
-            total,
-            page,
+    // Query enrollments with approved status and pagination
+    const [result, total] = await Promise.all([
+        cursorPagination({
+            model: Enrollment,
+            filter,
             limit,
-            totalPages: Math.ceil(total / limit)
-        };
+            cursor,
+            projection: {},
+            sort: { _id: -1 },
+        }),
+        Enrollment.countDocuments(filter)
+    ]);
 
-        return res.status(200).json({
-            success: true,
-            message: "Enrolled courses fetched successfully",
-            data: courses,
-            pagination
-        });
-    } catch (error) {
-        console.error("Get enrolled courses error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
-    }
+    const enrollments = await Enrollment.populate(result.data, {
+        path: "course",
+        select: "title courseCode category institution level description courseImageUrl",
+    });
+
+    // Map enrollments to return just the course objects
+    const courses = enrollments.map((enrollment) => enrollment.course);
+
+    logger.info("Enrolled courses fetched", { userId, count: courses.length, limit, cursor });
+    return res.status(200).json({
+        success: true,
+        message: "Enrolled courses fetched successfully",
+        data: courses,
+        total,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+    });
 };
 
-module.exports = getEnrolledCourses;
+module.exports = asyncHandler(getEnrolledCourses);

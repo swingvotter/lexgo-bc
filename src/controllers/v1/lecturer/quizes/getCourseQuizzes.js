@@ -1,6 +1,9 @@
 const path = require('../../../../path');
 const LecturerQuiz = require(path.models.lecturer.quiz);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get all quizzes for a specific course
@@ -9,48 +12,40 @@ const getPagination = require(path.utils.pagination);
  * @access Private (Lecturer)
  */
 const getCourseQuizzes = async (req, res) => {
-    try {
-        const { courseId } = req.params;
-        const lecturerId = req.userInfo?.id;
+    const { courseId } = req.params;
+    const lecturerId = req.userInfo?.id;
 
-        if (!courseId) {
-            return res.status(400).json({
-                success: false,
-                message: "Course ID is required",
-            });
-        }
-
-        const { page, limit, skip } = getPagination(req.query);
-
-        const filter = { courseId, lecturerId };
-
-        // Find quizzes for this course that belong to this lecturer with pagination
-        const [quizzes, total] = await Promise.all([
-            LecturerQuiz.find(filter)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            LecturerQuiz.countDocuments(filter)
-        ]);
-
-        return res.status(200).json({
-            success: true,
-            data: quizzes,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
-            }
-        });
-    } catch (error) {
-        console.error("Get Course Quizzes Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error while fetching course quizzes",
-        });
+    if (!courseId) {
+        logger.warn("Course quizzes missing course", { lecturerId });
+        throw new AppError("Course ID is required", 400);
     }
+
+    const limit = Number(req.query.limit || 25);
+    const cursor = req.query.cursor || null;
+
+    const filter = { courseId, lecturerId };
+
+    // Find quizzes for this course that belong to this lecturer with pagination
+    const [result, total] = await Promise.all([
+        cursorPagination({
+            model: LecturerQuiz,
+            filter,
+            limit,
+            cursor,
+            projection: {},
+            sort: { _id: -1 },
+        }),
+        LecturerQuiz.countDocuments(filter)
+    ]);
+
+    logger.info("Course quizzes fetched", { courseId, count: result.data.length, limit, cursor });
+    return res.status(200).json({
+        success: true,
+        data: result.data,
+        total,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+    });
 };
 
-module.exports = getCourseQuizzes;
+module.exports = asyncHandler(getCourseQuizzes);

@@ -1,60 +1,53 @@
 const path = require('../../../../path');
 const Enrollment = require(path.models.users.enrollment);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Fetch all enrollments with pagination and populated fields
  */
 const adminFetchEnrollmentsHandler = async (req, res) => {
-    try {
-        const { page, limit, skip } = getPagination(req.query);
+    const limit = Number(req.query.limit || 25);
+    const cursor = req.query.cursor || null;
 
-        const query = {};
+    const query = {};
 
-        // Status filter
-        if (req.query.status) {
-            const allowedStatus = ["pending", "approved", "rejected"];
-            if (allowedStatus.includes(req.query.status)) {
-                query.status = req.query.status;
-            }
+    // Status filter
+    if (req.query.status) {
+        const allowedStatus = ["pending", "approved", "rejected"];
+        if (allowedStatus.includes(req.query.status)) {
+            query.status = req.query.status;
         }
-
-        // Execute queries in parallel
-        const [enrollments, totalItems] = await Promise.all([
-            Enrollment.find(query)
-                .populate("userId", "firstName lastName email")
-                .populate("course", "title courseCode category level")
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Enrollment.countDocuments(query),
-        ]);
-
-        const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 0;
-
-        return res.status(200).json({
-            success: true,
-            message: "Enrollments fetched successfully",
-            data: enrollments,
-            pagination: {
-                page,
-                limit,
-                totalItems,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1,
-                startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
-                endIndex: Math.min(page * limit, totalItems),
-            },
-        });
-    } catch (error) {
-        console.error("Fetch enrollments error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to fetch enrollments. Please try again later.",
-        });
     }
+
+    // Execute queries in parallel
+    const [result, totalItems] = await Promise.all([
+        cursorPagination({
+            model: Enrollment,
+            filter: query,
+            limit,
+            cursor,
+            projection: {},
+            sort: { _id: -1 },
+        }),
+        Enrollment.countDocuments(query),
+    ]);
+
+    const enrollments = await Enrollment.populate(result.data, [
+        { path: "userId", select: "firstName lastName email" },
+        { path: "course", select: "title courseCode category level" },
+    ]);
+
+    logger.info("Enrollments fetched", { count: enrollments.length, limit, cursor });
+    return res.status(200).json({
+        success: true,
+        message: "Enrollments fetched successfully",
+        data: enrollments,
+        totalItems,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+    });
 };
 
-module.exports = adminFetchEnrollmentsHandler;
+module.exports = asyncHandler(adminFetchEnrollmentsHandler);

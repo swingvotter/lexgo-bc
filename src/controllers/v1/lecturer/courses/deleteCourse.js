@@ -12,6 +12,9 @@ const CaseQuiz = require(path.models.lecturer.caseQuiz);
 const CaseQuizSubmission = require(path.models.users.caseQuizSubmission);
 const SubLecturer = require(path.models.lecturer.subLecturer);
 const cloudinary = require(path.config.cloudinary);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 
 /**
@@ -30,64 +33,58 @@ const cloudinary = require(path.config.cloudinary);
  */
 const deleteCourseHandler = async (req, res) => {
   const session = await mongoose.startSession();
-  try {
-    const courseId = req.params?.courseId;
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "courseId is required" });
-    }
+  const courseId = req.params?.courseId;
+  if (!courseId) {
+    logger.warn("Course delete missing id");
+    throw new AppError("courseId is required", 400);
+  }
 
-    // Get lecturer ID from auth middleware
-    const lecturerId = req.userInfo?.id;
-    if (!lecturerId) {
-      return res.status(401).json({ success: false, message: "unauthorized" });
-    }
+  // Get lecturer ID from auth middleware
+  const lecturerId = req.userInfo?.id;
+  if (!lecturerId) {
+    logger.warn("Course delete unauthorized", { courseId });
+    throw new AppError("unauthorized", 401);
+  }
 
-    // Verify course exists AND belongs to this lecturer (authorization check)
-    const course = await Course.findOne({ _id: courseId, lecturerId });
-    if (!course) {
-      return res.status(404).json({ success: false, message: "course not found or not owned by you" });
-    }
+  // Verify course exists AND belongs to this lecturer (authorization check)
+  const course = await Course.findOne({ _id: courseId, lecturerId });
+  if (!course) {
+    logger.warn("Course delete missing", { courseId, lecturerId });
+    throw new AppError("course not found or not owned by you", 404);
+  }
 
-    // Step 1: Delete course image from Cloudinary (if present)
-    if (course.coursePublicImageId) {
-      try {
-        await cloudinary.uploader.destroy(course.coursePublicImageId);
-      } catch (err) {
-        console.error("Failed to delete course image from cloudinary:", err.message);
+  // Step 1: Delete course image from Cloudinary (if present)
+  if (course.coursePublicImageId) {
+    await cloudinary.uploader
+      .destroy(course.coursePublicImageId)
+      .catch((err) => logger.warn("Course image delete failed", { courseId, error: err.message }));
+  }
+
+  // Step 2: Find and Delete resource files from Cloudinary
+  const resources = await Resource.find({ courseId });
+  await Promise.all(
+    resources.map(async (r) => {
+      if (r.publicId) {
+        await cloudinary.uploader
+          .destroy(r.publicId, { resource_type: "raw", type: "private" })
+          .catch((err) => logger.warn("Resource delete failed", { resourceId: r._id, error: err.message }));
       }
-    }
+    })
+  );
 
-    // Step 2: Find and Delete resource files from Cloudinary
-    const resources = await Resource.find({ courseId });
-    await Promise.all(
-      resources.map(async (r) => {
-        if (r.publicId) {
-          try {
-            await cloudinary.uploader.destroy(r.publicId, { resource_type: "raw", type: "private" });
-          } catch (err) {
-            console.error("Failed to delete resource from cloudinary:", err.message);
-          }
-        }
-      })
-    );
+  // Step 3: Find and Delete case files from Cloudinary
+  const cases = await LecturerCase.find({ courseId });
+  await Promise.all(
+    cases.map(async (c) => {
+      if (c.caseDocumentPublicId) {
+        await cloudinary.uploader
+          .destroy(c.caseDocumentPublicId, { resource_type: "raw", type: "private" })
+          .catch((err) => logger.warn("Case document delete failed", { caseId: c._id, error: err.message }));
+      }
+    })
+  );
 
-    // Step 3: Find and Delete case files from Cloudinary
-    const cases = await LecturerCase.find({ courseId });
-    await Promise.all(
-      cases.map(async (c) => {
-        if (c.caseDocumentPublicId) {
-          try {
-            await cloudinary.uploader.destroy(c.caseDocumentPublicId, { resource_type: "raw", type: "private" });
-          } catch (err) {
-            console.error("Failed to delete case document from cloudinary:", err.message);
-          }
-        }
-      })
-    );
-
-    // --- Start Database Transaction ---
-    session.startTransaction();
-
+  await session.withTransaction(async () => {
     // Step 4: Remove all related database entries
     await Resource.deleteMany({ courseId }).session(session);
     await ResourceContent.deleteMany({ courseId }).session(session);
@@ -102,21 +99,12 @@ const deleteCourseHandler = async (req, res) => {
 
     // Step 5: Finally remove the course itself
     await Course.findByIdAndDelete(courseId).session(session);
+  }).finally(() => session.endSession());
 
-    await session.commitTransaction();
-
-    return res.status(200).json({ success: true, message: "course and all related resources deleted successfully" });
-  } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    console.error("Delete course error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
-  } finally {
-    session.endSession();
-  }
+  logger.info("Course deleted", { courseId, lecturerId });
+  return res.status(200).json({ success: true, message: "course and all related resources deleted successfully" });
 };
 
-module.exports = deleteCourseHandler;
+module.exports = asyncHandler(deleteCourseHandler);
 
 

@@ -1,69 +1,62 @@
 const path = require('../../../../path');
 const LecturerQuizSubmission = require(path.models.users.lecturerQuizSubmission);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Fetch all student quiz submissions with pagination and populated fields
  * to track student progress and performance.
  */
 const adminFetchQuizSubmissionsHandler = async (req, res) => {
-    try {
-        const { page, limit, skip } = getPagination(req.query);
+    const limit = Number(req.query.limit || 25);
+    const cursor = req.query.cursor || null;
 
-        const query = {};
+    const query = {};
 
-        // Filter by studentId if provided
-        if (req.query.studentId) {
-            query.studentId = req.query.studentId;
-        }
-
-        // Filter by courseId if provided
-        if (req.query.courseId) {
-            query.courseId = req.query.courseId;
-        }
-
-        // Filter by quizId if provided
-        if (req.query.quizId) {
-            query.quizId = req.query.quizId;
-        }
-
-        // Execute queries in parallel
-        const [submissions, totalItems] = await Promise.all([
-            LecturerQuizSubmission.find(query)
-                .populate("studentId", "firstName lastName email")
-                .populate("courseId", "title courseCode")
-                .populate("quizId", "title totalMarks")
-                .sort({ completedAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            LecturerQuizSubmission.countDocuments(query),
-        ]);
-
-        const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 0;
-
-        return res.status(200).json({
-            success: true,
-            message: "Quiz submissions fetched successfully",
-            data: submissions,
-            pagination: {
-                page,
-                limit,
-                totalItems,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1,
-                startIndex: totalItems > 0 ? (page - 1) * limit + 1 : 0,
-                endIndex: Math.min(page * limit, totalItems),
-            },
-        });
-    } catch (error) {
-        console.error("Fetch quiz submissions error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to fetch quiz submissions. Please try again later.",
-        });
+    // Filter by studentId if provided
+    if (req.query.studentId) {
+        query.studentId = req.query.studentId;
     }
+
+    // Filter by courseId if provided
+    if (req.query.courseId) {
+        query.courseId = req.query.courseId;
+    }
+
+    // Filter by quizId if provided
+    if (req.query.quizId) {
+        query.quizId = req.query.quizId;
+    }
+
+    // Execute queries in parallel
+    const [result, totalItems] = await Promise.all([
+        cursorPagination({
+            model: LecturerQuizSubmission,
+            filter: query,
+            limit,
+            cursor,
+            projection: {},
+            sort: { _id: -1 },
+        }),
+        LecturerQuizSubmission.countDocuments(query),
+    ]);
+
+    const submissions = await LecturerQuizSubmission.populate(result.data, [
+        { path: "studentId", select: "firstName lastName email" },
+        { path: "courseId", select: "title courseCode" },
+        { path: "quizId", select: "title totalMarks" },
+    ]);
+
+    logger.info("Quiz submissions fetched", { count: submissions.length, limit, cursor });
+    return res.status(200).json({
+        success: true,
+        message: "Quiz submissions fetched successfully",
+        data: submissions,
+        totalItems,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+    });
 };
 
-module.exports = adminFetchQuizSubmissionsHandler;
+module.exports = asyncHandler(adminFetchQuizSubmissionsHandler);

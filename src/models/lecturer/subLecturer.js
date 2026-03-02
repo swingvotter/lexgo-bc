@@ -23,6 +23,7 @@ const subLecturerSchema = new mongoose.Schema(
 
 // Prevent duplicate requests for same course-lecturer pair
 subLecturerSchema.index({ courseId: 1, lecturerId: 1 }, { unique: true });
+subLecturerSchema.index({ courseId: 1, status: 1, _id: -1 });
 
 const SubLecturer = mongoose.model("SubLecturer", subLecturerSchema);
 module.exports = SubLecturer;

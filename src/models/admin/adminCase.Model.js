@@ -50,5 +50,11 @@ const adminCaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+adminCaseSchema.index({ title: 1, _id: -1 });
+adminCaseSchema.index({ citation: 1, _id: -1 });
+adminCaseSchema.index({ jurisdiction: 1, _id: -1 });
+adminCaseSchema.index({ "court.level": 1, _id: -1 });
+adminCaseSchema.index({ "court.name": 1, _id: -1 });
+
 const AdminCase = mongoose.model("AdminCase", adminCaseSchema, "adminCases");
 module.exports = AdminCase;

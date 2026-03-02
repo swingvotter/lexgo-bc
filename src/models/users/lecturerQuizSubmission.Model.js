@@ -41,6 +41,9 @@ const lecturerQuizSubmissionSchema = new mongoose.Schema({
 
 // Ensure attempt tracking is easier with an index
 lecturerQuizSubmissionSchema.index({ quizId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
+lecturerQuizSubmissionSchema.index({ studentId: 1, _id: -1 });
+lecturerQuizSubmissionSchema.index({ courseId: 1, _id: -1 });
+lecturerQuizSubmissionSchema.index({ quizId: 1, _id: -1 });
 
 const LecturerQuizSubmission = mongoose.model("LecturerQuizSubmission", lecturerQuizSubmissionSchema);
 module.exports = LecturerQuizSubmission;

@@ -3,6 +3,9 @@ const ResourceContent = require(path.models.lecturer.resourceContent);
 const Course = require(path.models.lecturer.course);
 const CourseMaterial = require(path.models.lecturer.courseMaterial);
 const courseMaterialQueue = require(path.queues.v1.courseMaterial);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Create AI-generated course materials from uploaded resources
@@ -22,80 +25,66 @@ const courseMaterialQueue = require(path.queues.v1.courseMaterial);
  * @returns {Object} Job ID for tracking the background processing
  */
 const createCourseMaterialHandler = async (req, res) => {
-  try {
-    const courseId = req.params?.courseId;
-    if (!courseId) {
-      return res.status(400).json({
-        success: false,
-        message: "courseId is required",
-      });
-    }
-
-    // Check if course materials already exist for this course
-    const existingMaterial = await CourseMaterial.findOne({ courseId });
-    if (existingMaterial) {
-      return res.status(409).json({
-        success: false,
-        message: "Course materials have already been created for this course. You can upload additional resources, but cannot regenerate course materials.",
-        courseMaterialId: existingMaterial._id
-      });
-    }
-
-    // Fetch all extracted text content from uploaded PDFs for this course
-    const resourceContents = await ResourceContent.find({ courseId }).select(
-      "content -_id"
-    );
-
-    if (!resourceContents || resourceContents.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No resource content found. Please upload course materials (PDFs) before generating course content.",
-      });
-    }
-
-    // Combine all PDF contents into a single string with delimiters
-    // This merged content will be sent to AI for processing
-    const allContentCombined = resourceContents
-      .map((item) => item.content)
-      .join("-----------new pdf-----------");
-
-    // Get lecturer ID (required for ownership of generated materials)
-    let lecturerId = req.userInfo?.id;
-    if (!lecturerId) {
-      // Fallback: use course owner as lecturerId if request not authenticated
-      const course = await Course.findById(courseId).select("lecturerId");
-      if (!course) {
-        return res.status(404).json({ success: false, message: "course not found" });
-      }
-      lecturerId = course.lecturerId;
-    }
-
-    // Add job to BullMQ queue for background processing
-    // This prevents request timeout for long-running AI operations
-    const job = await courseMaterialQueue.add(
-      "create-course-material",
-      { courseId, lecturerId, combinedContent: allContentCombined },
-      {
-        attempts: 3,  // Retry up to 3 times on failure
-        backoff: { type: "exponential", delay: 2000 }  // Wait before retries
-      }
-    );
-
-    // Return 202 Accepted - job is queued, not yet complete
-    return res.status(202).json({
-      success: true,
-      message: "job created successfully",
-      jobId: job.id,  // Client can poll with this ID
-    });
-  } catch (error) {
-    console.error("Get resource content error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+  const courseId = req.params?.courseId;
+  if (!courseId) {
+    logger.warn("Course material missing course");
+    throw new AppError("courseId is required", 400);
   }
+
+  // Check if course materials already exist for this course
+  const existingMaterial = await CourseMaterial.findOne({ courseId });
+  if (existingMaterial) {
+    logger.warn("Course material exists", { courseId, courseMaterialId: existingMaterial._id });
+    throw new AppError("Course materials have already been created for this course. You can upload additional resources, but cannot regenerate course materials.", 409);
+  }
+
+  // Fetch all extracted text content from uploaded PDFs for this course
+  const resourceContents = await ResourceContent.find({ courseId }).select(
+    "content -_id"
+  );
+
+  if (!resourceContents || resourceContents.length === 0) {
+    logger.warn("Course material no content", { courseId });
+    throw new AppError("No resource content found. Please upload course materials (PDFs) before generating course content.", 400);
+  }
+
+  // Combine all PDF contents into a single string with delimiters
+  // This merged content will be sent to AI for processing
+  const allContentCombined = resourceContents
+    .map((item) => item.content)
+    .join("-----------new pdf-----------");
+
+  // Get lecturer ID (required for ownership of generated materials)
+  let lecturerId = req.userInfo?.id;
+  if (!lecturerId) {
+    // Fallback: use course owner as lecturerId if request not authenticated
+    const course = await Course.findById(courseId).select("lecturerId");
+    if (!course) {
+      logger.warn("Course material course missing", { courseId });
+      throw new AppError("course not found", 404);
+    }
+    lecturerId = course.lecturerId;
+  }
+
+  // Add job to BullMQ queue for background processing
+  // This prevents request timeout for long-running AI operations
+  const job = await courseMaterialQueue.add(
+    "create-course-material",
+    { courseId, lecturerId, combinedContent: allContentCombined },
+    {
+      attempts: 3,  // Retry up to 3 times on failure
+      backoff: { type: "exponential", delay: 2000 }  // Wait before retries
+    }
+  );
+
+  // Return 202 Accepted - job is queued, not yet complete
+  logger.info("Course material queued", { courseId, lecturerId, jobId: job.id });
+  return res.status(202).json({
+    success: true,
+    message: "job created successfully",
+    jobId: job.id,  // Client can poll with this ID
+  });
 };
 
-module.exports = createCourseMaterialHandler;
+module.exports = asyncHandler(createCourseMaterialHandler);
 

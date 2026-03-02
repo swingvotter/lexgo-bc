@@ -2,6 +2,9 @@ const path = require('../../../path');
 const Enrollment = require(path.models.users.enrollment);
 const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Apply to enroll in a course
@@ -18,76 +21,59 @@ const mongoose = require("mongoose");
  * @returns {Object} The created enrollment record
  */
 const applyToCourse = async (req, res) => {
-    try {
-        const { courseId } = req.params;
-        const { courseCode } = req.body || {};
-        const userId = req.userInfo.id; // Get student ID from auth middleware
+    const { courseId } = req.params;
+    const { courseCode } = req.body || {};
+    const userId = req.userInfo.id; // Get student ID from auth middleware
 
-        if (!mongoose.Types.ObjectId.isValid(courseId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid course ID",
-            });
-        }
-
-        if (!courseCode) {
-            return res.status(400).json({
-                success: false,
-                message: "Course code is required",
-            });
-        }
-
-        // Verify the course exists
-        const course = await Course.findById(courseId);
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: "Course not found",
-            });
-        }
-
-        // Verify course code matches
-        if (course.courseCode !== courseCode) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid course code",
-            });
-        }
-
-        // Check if user already has an enrollment (any status) for this course
-        // This prevents duplicate pending, approved, or rejected enrollments
-        const existingEnrollment = await Enrollment.findOne({
-            userId,
-            course: courseId,
-        });
-
-        if (existingEnrollment) {
-            return res.status(400).json({
-                success: false,
-                message: `You already have a ${existingEnrollment.status} enrollment for this course`,
-            });
-        }
-
-        // Create new enrollment with pending status
-        // Lecturer must approve before student can access course
-        const enrollment = await Enrollment.create({
-            userId,
-            course: courseId,
-            status: "pending",
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "Course application submitted successfully. Awaiting approval.",
-            data: enrollment,
-        });
-    } catch (error) {
-        console.error("Apply to course error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+        logger.warn("Enrollment invalid course", { courseId, userId });
+        throw new AppError("Invalid course ID", 400);
     }
+
+    if (!courseCode) {
+        logger.warn("Enrollment missing code", { courseId, userId });
+        throw new AppError("Course code is required", 400);
+    }
+
+    // Verify the course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+        logger.warn("Enrollment course missing", { courseId, userId });
+        throw new AppError("Course not found", 404);
+    }
+
+    // Verify course code matches
+    if (course.courseCode !== courseCode) {
+        logger.warn("Enrollment invalid code", { courseId, userId });
+        throw new AppError("Invalid course code", 400);
+    }
+
+    // Check if user already has an enrollment (any status) for this course
+    // This prevents duplicate pending, approved, or rejected enrollments
+    const existingEnrollment = await Enrollment.findOne({
+        userId,
+        course: courseId,
+    });
+
+    if (existingEnrollment) {
+        logger.warn("Enrollment exists", { courseId, userId, status: existingEnrollment.status });
+        throw new AppError(`You already have a ${existingEnrollment.status} enrollment for this course`, 400);
+    }
+
+    // Create new enrollment with pending status
+    // Lecturer must approve before student can access course
+    const enrollment = await Enrollment.create({
+        userId,
+        course: courseId,
+        status: "pending",
+    });
+
+    logger.info("Enrollment requested", { courseId, userId, enrollmentId: enrollment?._id });
+    return res.status(201).json({
+        success: true,
+        message: "Course application submitted successfully. Awaiting approval.",
+        data: enrollment,
+    });
 };
 
-module.exports = applyToCourse;
+module.exports = asyncHandler(applyToCourse);

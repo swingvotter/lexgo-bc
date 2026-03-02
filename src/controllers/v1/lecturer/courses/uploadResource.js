@@ -12,6 +12,9 @@ const cloudinaryUrlSigner = require(path.utils.cloudinaryUrlSigner);
 const removeNewlines = require(path.utils.newLineRemover);
 const textExtractor = require(path.utils.textExtractor);
 const checkCourseAccess = require(path.utils.checkCourseAccess);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Upload a PDF resource to a course
@@ -28,45 +31,48 @@ const checkCourseAccess = require(path.utils.checkCourseAccess);
  */
 const uploadResourceHandler = async (req, res) => {
   const session = await mongoose.startSession();
-  try {
-    const { courseId } = req.params;
+  const { courseId } = req.params;
 
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "courseId is required" });
-    }
+  if (!courseId) {
+    logger.warn("Resource missing course");
+    throw new AppError("courseId is required", 400);
+  }
 
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "file is missing" });
-    }
+  if (!req.file) {
+    logger.warn("Resource missing file", { courseId });
+    throw new AppError("file is missing", 400);
+  }
 
-    const lecturerId = req.userInfo.id;
+  const lecturerId = req.userInfo.id;
 
-    // Check if user has access to this course (owner or sub-lecturer)
-    const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
+  // Check if user has access to this course (owner or sub-lecturer)
+  const { hasAccess, course } = await checkCourseAccess(courseId, lecturerId);
 
-    if (!course) {
-      return res.status(404).json({ success: false, message: "course not found" });
-    }
+  if (!course) {
+    logger.warn("Resource course missing", { courseId, lecturerId });
+    throw new AppError("course not found", 404);
+  }
 
-    if (!hasAccess) {
-      return res.status(403).json({ success: false, message: "You do not have access to this course" });
-    }
+  if (!hasAccess) {
+    logger.warn("Resource denied", { courseId, lecturerId });
+    throw new AppError("You do not have access to this course", 403);
+  }
 
-    // Upload PDF to Cloudinary as a private raw file
-    const result = await uploadPdfBufferToCloudinary(req.file.buffer);
-    if (!result) {
-      return res.status(400).json({ success: false, message: "upload failed" });
-    }
+  // Upload PDF to Cloudinary as a private raw file
+  const result = await uploadPdfBufferToCloudinary(req.file.buffer);
+  if (!result) {
+    logger.warn("Resource upload failed", { courseId, lecturerId });
+    throw new AppError("upload failed", 400);
+  }
 
-    // Extract text content from the file for AI processing
-    const data = await textExtractor(req.file);
-    const updatedContent = removeNewlines(data);
+  // Extract text content from the file for AI processing
+  const data = await textExtractor(req.file);
+  const updatedContent = removeNewlines(data);
+  let newResource;
 
-    // --- Start Database Transaction ---
-    session.startTransaction();
-
+  await session.withTransaction(async () => {
     // Create resource record in database
-    const [newResource] = await Resource.create([{
+    [newResource] = await Resource.create([{
       lecturerId,
       courseId: course._id,
       fileName: req.file.originalname,
@@ -81,24 +87,15 @@ const uploadResourceHandler = async (req, res) => {
       courseId: course._id,
       content: updatedContent,
     }], { session });
+  }).finally(() => session.endSession());
 
-    await session.commitTransaction();
-
-    return res.status(201).json({
-      success: true,
-      message: "resource uploaded succesfully",
-      resourceId: newResource._id,
-    });
-  } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    console.error("Upload resource error:", error);
-    return res.status(500).json({ success: false, message: "server error" });
-  } finally {
-    session.endSession();
-  }
+  logger.info("Resource uploaded", { courseId, resourceId: newResource?._id, lecturerId });
+  return res.status(201).json({
+    success: true,
+    message: "resource uploaded succesfully",
+    resourceId: newResource._id,
+  });
 };
 
-module.exports = uploadResourceHandler;
+module.exports = asyncHandler(uploadResourceHandler);
 

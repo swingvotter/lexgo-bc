@@ -150,6 +150,7 @@ userSchema.index(
 
 // Performance & search indexes
 userSchema.index({ role: 1 });
+userSchema.index({ role: 1, _id: -1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ firstName: 1, lastName: 1 });
 

@@ -35,7 +35,8 @@ async function askAiHandler(req, res) {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-
+  res.setHeader("X-Accel-Buffering", "no");
+  
   // Start OpenAI stream
   const stream = await chatGptStream(question);
 

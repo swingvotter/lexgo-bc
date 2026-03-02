@@ -20,6 +20,7 @@ const resourceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+resourceSchema.index({ courseId: 1, _id: -1 });
 
 const Resource = mongoose.model("Resource", resourceSchema);
 module.exports = Resource;

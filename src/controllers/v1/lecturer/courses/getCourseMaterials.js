@@ -1,6 +1,9 @@
 const path = require('../../../../path');
 const CourseMaterial = require(path.models.lecturer.courseMaterial);
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get all AI-generated materials for a course
@@ -15,44 +18,37 @@ const getPagination = require(path.utils.pagination);
  * @returns {Object} Array of course materials
  */
 const getCourseMaterialsHandler = async (req, res) => {
-  try {
-    const courseId = req.params?.courseId;
-    if (!courseId) {
-      return res.status(400).json({
-        success: false,
-        message: "courseId is required",
-      });
-    }
-
-    const { page, limit, skip } = getPagination(req.query);
-
-    // Fetch materials with pagination, sorted by newest first
-    const [materials, total] = await Promise.all([
-      CourseMaterial.find({ courseId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      CourseMaterial.countDocuments({ courseId })
-    ]);
-
-    const pagination = {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    };
-
-    return res.status(200).json({
-      success: true,
-      data: materials,
-      pagination,
-    });
-  } catch (error) {
-    console.error("Get course materials error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+  const courseId = req.params?.courseId;
+  if (!courseId) {
+    logger.warn("Materials missing course");
+    throw new AppError("courseId is required", 400);
   }
+
+  const limit = Number(req.query.limit || 25);
+  const cursor = req.query.cursor || null;
+
+  // Fetch materials with pagination, sorted by newest first
+  const [result, total] = await Promise.all([
+    cursorPagination({
+      model: CourseMaterial,
+      filter: { courseId },
+      limit,
+      cursor,
+      projection: {},
+      sort: { _id: -1 },
+    }),
+    CourseMaterial.countDocuments({ courseId })
+  ]);
+
+  logger.info("Materials fetched", { courseId, count: result.data.length, limit, cursor });
+  return res.status(200).json({
+    success: true,
+    data: result.data,
+    total,
+    nextCursor: result.nextCursor,
+    hasMore: result.hasMore,
+  });
 };
 
-module.exports = getCourseMaterialsHandler;
+module.exports = asyncHandler(getCourseMaterialsHandler);
 

@@ -2,7 +2,10 @@ const path = require('../../../../path');
 const Resource = require(path.models.lecturer.resource);
 const Course = require(path.models.lecturer.course);
 const mongoose = require("mongoose");
-const getPagination = require(path.utils.pagination);
+const cursorPagination = require(path.utils.cursorPagination);
+const AppError = require(path.error.appError);
+const asyncHandler = require(path.utils.asyncHandler);
+const logger = require(path.config.logger);
 
 /**
  * Get paginated list of resources (PDFs) for a course
@@ -21,64 +24,58 @@ const getPagination = require(path.utils.pagination);
  * @returns {Object} Paginated resources with metadata
  */
 const getCourseResourcesHandler = async (req, res) => {
-  try {
-    const courseId = req.params?.courseId;
+  const courseId = req.params?.courseId;
 
-    // Validate courseId is a valid MongoDB ObjectId
-    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ success: false, message: "valid courseId is required" });
-    }
-
-    // Use centralized pagination utility
-    const { page, limit, skip } = getPagination(req.query);
-
-    const sort = req.query.sort || "-createdAt";  // Default: newest first
-    const select = req.query.fields ? req.query.fields.split(",").join(" ") : "-__v";
-
-    // Verify course exists before fetching resources
-    const course = await Course.findById(courseId).select("_id");
-    if (!course) {
-      return res.status(404).json({ success: false, message: "course not found" });
-    }
-
-    // Build query with pagination
-    const filter = { courseId };
-
-    // Execute queries in parallel
-    const [resources, total] = await Promise.all([
-      Resource.find(filter)
-        .select(select)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Resource.countDocuments(filter)
-    ]);
-
-    // Append download URL to each resource pointing to our proxy
-    const resourcesWithUrl = resources.map(resource => ({
-      ...resource,
-      downloadUrl: `/api/Courses/resource/download/${resource._id}`
-    }));
-
-    const pagination = {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    };
-
-    return res.status(200).json({
-      success: true,
-      data: resourcesWithUrl,
-      pagination,
-    });
-
-  } catch (error) {
-    console.error("Get course resources error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+  // Validate courseId is a valid MongoDB ObjectId
+  if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+    logger.warn("Resources invalid course", { courseId });
+    throw new AppError("valid courseId is required", 400);
   }
+
+  const limit = Number(req.query.limit || 25);
+  const cursor = req.query.cursor || null;
+  const sortParam = req.query.sort || "-createdAt";  // Default: newest first
+  const sortOrder = sortParam.startsWith("-") ? -1 : 1;
+  const select = req.query.fields ? req.query.fields.split(",").join(" ") : "-__v";
+
+  // Verify course exists before fetching resources
+  const course = await Course.findById(courseId).select("_id");
+  if (!course) {
+    logger.warn("Resources course missing", { courseId });
+    throw new AppError("course not found", 404);
+  }
+
+  // Build query with pagination
+  const filter = { courseId };
+
+  // Execute queries in parallel
+  const [result, total] = await Promise.all([
+    cursorPagination({
+      model: Resource,
+      filter,
+      limit,
+      cursor,
+      projection: select,
+      sort: { _id: sortOrder },
+    }),
+    Resource.countDocuments(filter)
+  ]);
+
+  // Append download URL to each resource pointing to our proxy
+  const resourcesWithUrl = result.data.map(resource => ({
+    ...(resource.toObject ? resource.toObject() : resource),
+    downloadUrl: `/api/Courses/resource/download/${resource._id}`
+  }));
+
+  logger.info("Resources fetched", { courseId, count: resourcesWithUrl.length, limit, cursor });
+  return res.status(200).json({
+    success: true,
+    data: resourcesWithUrl,
+    total,
+    nextCursor: result.nextCursor,
+    hasMore: result.hasMore,
+  });
 };
 
-module.exports = getCourseResourcesHandler;
+module.exports = asyncHandler(getCourseResourcesHandler);
 
