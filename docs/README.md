@@ -40,14 +40,14 @@ This documentation is organized by user roles and functional modules:
 ## 🚀 Quick Start
 
 ### 1. Base URL
-`http://localhost:3000/api` (Local Development)
+`http://localhost:3000/api/v1` (Local Development)
 
 ### 2. Authentication Flow
 All protected endpoints require an `accessToken` in the `Authorization` header:
 ```http
 Authorization: Bearer <accessToken>
 ```
-The `accessToken` expires every 15 minutes. Use the `refreshToken` (stored in an HttpOnly cookie) to get a new one via `POST /api/Auth/refresh-token`.
+The `accessToken` expires every 15 minutes. Use the `refreshToken` (stored in an HttpOnly cookie) to get a new one via `POST /api/v1/Auth/refresh-token`.
 
 ---
 

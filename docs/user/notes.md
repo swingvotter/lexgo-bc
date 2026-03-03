@@ -1,6 +1,6 @@
 # Notes API Documentation
 
-**Base URL:** `/api/Notes`  
+**Base URL:** `/api/v1/Notes`  
 **Version:** 1.0
 
 ---
@@ -40,7 +40,7 @@ Authorization: Bearer <accessToken>
 
 Retrieves a paginated list of the authenticated user's notes with optional filtering and sorting.
 
-**Endpoint:** `GET /api/Notes/get-all`
+**Endpoint:** `GET /api/v1/Notes/`
 
 ### Query Parameters
 
@@ -57,7 +57,7 @@ Retrieves a paginated list of the authenticated user's notes with optional filte
 ### Example Request
 
 ```http
-GET /api/Notes/get-all?page=1&limit=10&importanceLevel=High Priority&search=contract&sortBy=createdAt&sortOrder=desc
+GET /api/v1/Notes/?page=1&limit=10&importanceLevel=High Priority&search=contract&sortBy=createdAt&sortOrder=desc
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -126,7 +126,7 @@ const fetchNotes = async (filters = {}) => {
       ...(filters.sortOrder && { sortOrder: filters.sortOrder })
     });
 
-    const response = await axios.get(`/api/Notes/get-all?${params}`, {
+    const response = await axios.get(`/api/v1/Notes/?${params}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       },
@@ -161,7 +161,7 @@ const notes = await fetchNotes({
 
 Retrieves a specific note by ID. Only notes belonging to the authenticated user can be accessed.
 
-**Endpoint:** `GET /api/Notes/get/:id`
+**Endpoint:** `GET /api/v1/Notes/:id`
 
 ### URL Parameters
 
@@ -172,7 +172,7 @@ Retrieves a specific note by ID. Only notes belonging to the authenticated user 
 ### Example Request
 
 ```http
-GET /api/Notes/get/64a1b2c3d4e5f6g7h8i9j0k1
+GET /api/v1/Notes/64a1b2c3d4e5f6g7h8i9j0k1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -211,7 +211,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 // Get single note
 const getNote = async (noteId) => {
   try {
-    const response = await axios.get(`/api/Notes/get/${noteId}`, {
+    const response = await axios.get(`/api/v1/Notes/${noteId}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       },
@@ -237,7 +237,7 @@ const note = await getNote('64a1b2c3d4e5f6g7h8i9j0k1');
 
 Creates a new note for the authenticated user.
 
-**Endpoint:** `POST /api/Notes/create`
+**Endpoint:** `POST /api/v1/Notes/`
 
 ### Request Body
 
@@ -325,7 +325,7 @@ const createNote = async (noteData) => {
     }
 
     const response = await axios.post(
-      '/api/Notes/create',
+      '/api/v1/Notes/',
       {
         title: noteData.title.trim(),
         legalTopic: noteData.legalTopic.trim(),
@@ -365,7 +365,7 @@ const newNote = await createNote({
 
 Updates an existing note. Only notes belonging to the authenticated user can be updated. You can update any combination of fields - at least one field must be provided.
 
-**Endpoint:** `PATCH /api/Notes/update/:id`
+**Endpoint:** `PATCH /api/v1/Notes/:id`
 
 ### URL Parameters
 
@@ -387,7 +387,7 @@ Updates an existing note. Only notes belonging to the authenticated user can be 
 ### Example Request
 
 ```http
-PATCH /api/Notes/update/64a1b2c3d4e5f6g7h8i9j0k1
+PATCH /api/v1/Notes/64a1b2c3d4e5f6g7h8i9j0k1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/json
 
@@ -471,7 +471,7 @@ const updateNote = async (noteId, updates) => {
     }
 
     const response = await axios.patch(
-      `/api/Notes/update/${noteId}`,
+      `/api/v1/Notes/${noteId}`,
       updateData,
       {
         headers: {
@@ -504,7 +504,7 @@ const updatedNote = await updateNote('64a1b2c3d4e5f6g7h8i9j0k1', {
 
 Deletes a note by ID. Only notes belonging to the authenticated user can be deleted.
 
-**Endpoint:** `DELETE /api/Notes/delete/:id`
+**Endpoint:** `DELETE /api/v1/Notes/:id`
 
 ### URL Parameters
 
@@ -515,7 +515,7 @@ Deletes a note by ID. Only notes belonging to the authenticated user can be dele
 ### Example Request
 
 ```http
-DELETE /api/Notes/delete/64a1b2c3d4e5f6g7h8i9j0k1
+DELETE /api/v1/Notes/64a1b2c3d4e5f6g7h8i9j0k1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -545,7 +545,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 // Delete note
 const deleteNote = async (noteId) => {
   try {
-    const response = await axios.delete(`/api/Notes/delete/${noteId}`, {
+    const response = await axios.delete(`/api/v1/Notes/${noteId}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       },
@@ -613,31 +613,31 @@ export const notesAPI = {
       ...(filters.sortOrder && { sortOrder: filters.sortOrder })
     });
 
-    const response = await api.get(`/api/Notes/get-all?${params}`);
+    const response = await api.get(`/api/v1/Notes/?${params}`);
     return response.data;
   },
 
   // Get single note
   getOne: async (noteId) => {
-    const response = await api.get(`/api/Notes/get/${noteId}`);
+    const response = await api.get(`/api/v1/Notes/${noteId}`);
     return response.data.data;
   },
 
   // Create note
   create: async (noteData) => {
-    const response = await api.post('/api/Notes/create', noteData);
+    const response = await api.post('/api/v1/Notes/', noteData);
     return response.data.data;
   },
 
   // Update note
   update: async (noteId, updates) => {
-    const response = await api.patch(`/api/Notes/update/${noteId}`, updates);
+    const response = await api.patch(`/api/v1/Notes/${noteId}`, updates);
     return response.data.data;
   },
 
   // Delete note
   delete: async (noteId) => {
-    const response = await api.delete(`/api/Notes/delete/${noteId}`);
+    const response = await api.delete(`/api/v1/Notes/${noteId}`);
     return response.data;
   }
 };

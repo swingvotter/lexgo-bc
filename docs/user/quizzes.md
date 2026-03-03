@@ -1,6 +1,6 @@
 # Quiz API Documentation
 
-**Base URL:** `/api/Ai`  
+**Base URL:** `/api/v1/Ai`  
 **Authentication:** Required for all endpoints (Bearer token in Authorization header)
 
 ---
@@ -11,7 +11,7 @@
 
 Generates a new quiz asynchronously. Returns a `jobId` to track quiz generation status.
 
-**Endpoint:** `POST /api/Ai/quiz`
+**Endpoint:** `POST /api/v1/Ai/quiz`
 
 **Request Body:**
 ```json
@@ -41,7 +41,7 @@ Generates a new quiz asynchronously. Returns a `jobId` to track quiz generation 
 
 Check the status of quiz generation using the `jobId` from create quiz endpoint.
 
-**Endpoint:** `GET /api/Ai/quiz/status/:jobId`
+**Endpoint:** `GET /api/v1/Ai/quiz/status/:jobId`
 
 **URL Parameters:**
 - `jobId` (required) - Job ID returned from create quiz endpoint
@@ -85,7 +85,7 @@ Check the status of quiz generation using the `jobId` from create quiz endpoint.
 
 Retrieve a specific quiz by ID.
 
-**Endpoint:** `GET /api/Ai/quiz/:quizId`
+**Endpoint:** `GET /api/v1/Ai/quiz/:quizId`
 
 **URL Parameters:**
 - `quizId` (required) - Quiz ID
@@ -128,31 +128,23 @@ Retrieve a specific quiz by ID.
 
 Retrieve all quizzes for the authenticated user with pagination and optional filters.
 
-**Endpoint:** `GET /api/Ai/quizzes`
+**Endpoint:** `GET /api/v1/Ai/quizzes`
 
 **Query Parameters:**
-- `page` (optional) - Page number (default: 1)
-- `limit` (optional) - Items per page (default: 10)
+- `limit` (optional) - Items per page (default: 25)
+- `cursor` (optional) - Pagination cursor
 - `completed` (optional) - Filter by completion status: `true` or `false`
 - `difficultyLevel` (optional) - Filter by difficulty: `easy`, `medium`, or `hard`
 
-**Example:** `GET /api/Ai/quizzes?page=1&limit=10&completed=false&difficultyLevel=easy`
+**Example:** `GET /api/v1/Ai/quizzes?limit=10&completed=false`
 
 **Response (200 OK):**
 ```json
 {
   "message": "Quizzes retrieved successfully",
   "quizzes": [ /* array of quiz objects */ ],
-  "pagination": {
-    "page": "number",
-    "limit": "number",
-    "totalItems": "number",
-    "totalPages": "number",
-    "hasNextPage": "boolean",
-    "hasPrevPage": "boolean",
-    "startIndex": "number",
-    "endIndex": "number"
-  }
+  "nextCursor": "string",
+  "hasMore": "boolean"
 }
 ```
 
@@ -165,7 +157,7 @@ Retrieve all quizzes for the authenticated user with pagination and optional fil
 
 Submit the score for a completed quiz. This marks the quiz as completed and calculates overall statistics.
 
-**Endpoint:** `POST /api/Ai/quiz/submit/:quizId`
+**Endpoint:** `POST /api/v1/Ai/quiz/submit/:quizId`
 
 **URL Parameters:**
 - `quizId` (required) - Quiz ID
@@ -201,7 +193,7 @@ Submit the score for a completed quiz. This marks the quiz as completed and calc
 
 Delete a quiz by ID.
 
-**Endpoint:** `DELETE /api/Ai/quiz/:quizId`
+**Endpoint:** `DELETE /api/v1/Ai/quiz/:quizId`
 
 **URL Parameters:**
 - `quizId` (required) - Quiz ID

@@ -139,10 +139,10 @@ Different endpoints have different rate limits to prevent abuse and ensure fair 
 
 | Endpoint Type | Limit | Window | Endpoints |
 |--------------|-------|--------|-----------|
-| Login | 3 requests | 15 minutes | `POST /api/Auth/login` |
-| OTP Operations | 3 requests | 15 minutes | `POST /api/Auth/send-otp`, `POST /api/Auth/verify-otp`, `POST /api/Auth/reset-password` |
-| AI Requests | 20 requests | 15 minutes | `POST /api/AI/ask-AI` |
-| General API | 100 requests | 15 minutes | `GET /api/Admin/users`, Notes API endpoints, and other general endpoints |
+| Login | 3 requests | 15 minutes | `POST /api/v1/Auth/login` |
+| OTP Operations | 3 requests | 15 minutes | `POST /api/v1/Auth/send-otp`, `POST /api/v1/Auth/verify-otp`, `POST /api/v1/Auth/reset-password` |
+| AI Requests | 20 requests | 15 minutes | `POST /api/v1/Ai/ask` |
+| General API | 100 requests | 15 minutes | `GET /api/v1/Admin/users`, Notes API endpoints, and other general endpoints |
 
 ### Rate Limit Response
 
@@ -170,7 +170,7 @@ X-RateLimit-Reset: 1701234567
 ```javascript
 // Example: Handle rate limiting
 try {
-  const response = await api.post('/api/Auth/login', credentials);
+  const response = await api.post('/api/v1/Auth/login', credentials);
 } catch (error) {
   if (error.response?.status === 429) {
     const resetTime = error.response.headers['x-ratelimit-reset'];
@@ -190,7 +190,7 @@ try {
 1. User logs in → Receives accessToken (15 min expiry)
 2. refreshToken stored as HttpOnly cookie (7 days expiry)
 3. Use accessToken in Authorization header for protected routes
-4. When accessToken expires → Call /api/Auth/refresh-token
+4. When accessToken expires → Call /api/v1/Auth/refresh-token
 5. New accessToken received → Continue using API
 ```
 
@@ -225,7 +225,7 @@ api.interceptors.response.use(
       
       try {
         const { data } = await axios.post(
-          '/api/Auth/refresh-token',
+          '/api/v1/Auth/refresh-token',
           {},
           {
             headers: {
@@ -290,7 +290,7 @@ api.interceptors.response.use(
       error.config._retry = true;
       
       try {
-        const { data } = await api.post('/api/Auth/refresh-token');
+        const { data } = await api.post('/api/v1/Auth/refresh-token');
         accessToken = data.accessToken;
         error.config.headers.Authorization = `Bearer ${accessToken}`;
         return api(error.config);
@@ -325,7 +325,7 @@ accessToken = response.data.accessToken;
 // Example: Fetch users (admin only)
 const fetchUsers = async (filters = {}) => {
   try {
-    const response = await api.get('/api/Admin/users', {
+    const response = await api.get('/api/v1/Admin/users', {
       params: filters
     });
     return response.data;
@@ -416,7 +416,7 @@ const MyComponent = () => {
     try {
       const data = await request({
         method: 'GET',
-        url: '/api/Admin/users',
+        url: '/api/v1/Admin/users',
         params: { page: 1, limit: 10 }
       });
       console.log(data);

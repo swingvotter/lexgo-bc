@@ -1,6 +1,6 @@
 # Lecturer Quiz System Documentation
 
-**Base URL:** `/api/LecturerQuiz`
+**Base URL:** `/api/v1/LecturerQuiz`
 **Version:** 1.0
 
 ---
@@ -26,10 +26,10 @@ The system allows lecturers and approved sub-lecturers to create, schedule, and 
   "courseId": "string (required)",
   "title": "string (required)",
   "description": "string (required)",
-  "quizDuration": "number (minutes)",
-  "quizStartTime": "Date String",
+  "quizDuration": "number (minutes, required)",
+  "quizStartTime": "Date String (required)",
   "quizEndTime": "Date String (optional)",
-  "attempts": "1 | 2 | 3 | -1 (unlimited)",
+  "attempts": "1 | 2 | 3 | -1 (unlimited, required)",
   "grade": { "markPerQuestion": 1, "totalMarks": 10 },
   "shuffleQuestions": "boolean",
   "shuffleAnswers": "boolean",
@@ -39,13 +39,15 @@ The system allows lecturers and approved sub-lecturers to create, schedule, and 
       "question": "string",
       "options": ["A", "B", "C", "D"],
       "correctAnswer": "string",
-      "explanation": "string (optional)"
+      "explanation": "string (optional)",
+      "mark": "number (optional, default 1)"
     }
   ]
 }
 ```
 
 ### Automatic Timing Logic
+- If `quizStartTime` is in the past or invalid, it is set to `now`.
 - If `quizEndTime` is provided and valid, it is used.
 - If `quizEndTime` is omitted or invalid, the system automatically sets it to `quizStartTime + quizDuration`.
 
@@ -59,13 +61,43 @@ The system allows lecturers and approved sub-lecturers to create, schedule, and 
 
 Upload a PDF/DOCX to generate questions automatically using AI.
 
+### Form Fields
+- `file` (required): PDF/DOCX document.
+- `courseId` (required)
+- `title` (required)
+- `description` (required)
+- `quizDuration` (required, minutes)
+- `quizStartTime` (required)
+- `quizEndTime` (optional)
+- `attempts` (required)
+- `grade` (optional JSON)
+- `shuffleQuestions` (optional boolean)
+- `shuffleAnswers` (optional boolean)
+- `showScoresImmediately` (optional boolean)
+- `numberOfQuestions` (optional, defaults to 10)
+- `difficultyLevel` (optional, defaults to "Mixed")
+
 ---
 
 ## 4. Management Endpoints
 
-- **Get Course Quizzes**: `GET /api/LecturerQuiz/course/:courseId`
-- **Get My Quizzes**: `GET /api/LecturerQuiz/my-quizzes` (Paginated)
-- **Delete Quiz**: `DELETE /api/LecturerQuiz/:quizId` (Course Owner Only)
+### A. Get Course Quizzes (Created by the current lecturer)
+**Endpoint:** `GET /api/LecturerQuiz/course/:courseId`
+
+**Query Parameters:**
+- `limit` (optional, default 25)
+- `cursor` (optional, for pagination)
+
+### B. Get My Quizzes (Paginated)
+**Endpoint:** `GET /api/LecturerQuiz/my-quizzes`
+
+**Query Parameters:**
+- `limit` (optional, default 25)
+- `cursor` (optional, for pagination)
+
+### C. Delete Quiz
+**Endpoint:** `DELETE /api/LecturerQuiz/:quizId`
+**Access:** Private (Only deletes quizzes created by the authenticated lecturer)
 
 ---
 

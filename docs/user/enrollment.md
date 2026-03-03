@@ -1,6 +1,6 @@
 # Course Enrollment API Documentation
 
-**Base URL:** `/api/Enrollments`  
+**Base URL:** `/api/v1/Enrollments`  
 **Version:** 1.0
 
 ---
@@ -16,7 +16,7 @@ The Enrollment API manages the relationship between Students and Courses. Studen
 ### 1. Apply for a Course
 Submit a request to enroll in a specific course.
 
-- **Endpoint**: `POST /api/Enrollments/apply/:courseId`
+- **Endpoint**: `POST /api/v1/Enrollments/apply/:courseId`
 - **Auth**: Required (Bearer Token)
 - **Path Parameters**:
   - `courseId` (string): The ID of the course you want to join.
@@ -36,25 +36,20 @@ Submit a request to enroll in a specific course.
 ### 2. Get My Enrolled Courses
 View all courses where your enrollment request has been **approved**.
 
-- **Endpoint**: `GET /api/Enrollments/my-courses`
+- **Endpoint**: `GET /api/v1/Enrollments/my-courses`
 - **Auth**: Required (Bearer Token)
 - **Query Parameters**:
-  - `page`: Page number (default: 1)
-  - `limit`: Items per page (default: 10)
+  - `limit`: Items per page (default: 25)
+  - `cursor`: Pagination cursor
 - **Success Response (200)**:
   ```json
   {
     "success": true,
-    "count": 5,
-    "data": [
-      {
-        "_id": "64...",
-        "title": "Introduction to Law",
-        "courseCode": "LAW101",
-        "institution": "University of Ghana",
-        "level": "100"
-      }
-    ]
+    "message": "Enrolled courses fetched successfully",
+    "data": [ ... ],
+    "total": 5,
+    "nextCursor": "...",
+    "hasMore": false
   }
   ```
 
@@ -65,28 +60,22 @@ View all courses where your enrollment request has been **approved**.
 ### 3. Get Pending Requests
 View all students waiting for approval to join a specific course.
 
-- **Endpoint**: `GET /api/Enrollments/requests/:courseId/pending`
+- **Endpoint**: `GET /api/v1/Enrollments/requests/:courseId/pending`
 - **Auth**: Required (Course Owner only)
 - **Path Parameters**:
   - `courseId` (string): The ID of the course to check.
+- **Query Parameters**:
+  - `limit`: Items per page (default: 25)
+  - `cursor`: Pagination cursor
 - **Success Response (200)**:
   ```json
   {
     "success": true,
-    "count": 2,
-    "data": [
-      {
-        "_id": "64... (Enrollment ID)",
-        "userId": {
-          "_id": "64...",
-          "firstName": "John",
-          "lastName": "Doe",
-          "email": "john@example.com"
-        },
-        "status": "pending",
-        "createdAt": "2024..."
-      }
-    ]
+    "message": "Pending enrollment requests fetched successfully",
+    "data": [ ... ],
+    "total": 2,
+    "nextCursor": "...",
+    "hasMore": false
   }
   ```
 
@@ -95,7 +84,7 @@ View all students waiting for approval to join a specific course.
 ### 4. Approve or Reject Student
 Decide whether to let a student into your course.
 
-- **Endpoint**: `PATCH /api/Enrollments/requests/:courseId/:userId`
+- **Endpoint**: `PATCH /api/v1/Enrollments/requests/:courseId/:userId`
 - **Auth**: Required (Course Owner only)
 - **Path Parameters**:
   - `courseId` (string): The ID of the course.

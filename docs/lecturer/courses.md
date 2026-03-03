@@ -1,6 +1,6 @@
 # Courses API Documentation
 
-**Base URL:** `/api/Courses`  
+**Base URL:** `/api/v1/Courses`  
 **Authentication:** Required for all endpoints (Bearer token in `Authorization` header).
 
 ---
@@ -15,7 +15,7 @@ This document describes technical endpoints for course management. Lecturers and
 
 Create a new course and upload a cover image.
 
-- **Endpoint:** `POST /api/Courses/`  
+- **Endpoint:** `POST /api/v1/Courses/`  
 - **Access:** Private (Lecturer)
 - **Content-Type:** `multipart/form-data`
 
@@ -36,7 +36,7 @@ Create a new course and upload a cover image.
 
 Upload educational materials to a course.
 
-- **Endpoint:** `POST /api/Courses/resource/:courseId`  
+- **Endpoint:** `POST /api/v1/Courses/resource/:courseId`  
 - **Access:** Private (Course Owner or Approved Sub-Lecturer)
 - **Content-Type:** `multipart/form-data`
 
@@ -55,11 +55,35 @@ Upload educational materials to a course.
 
 Get a paginated list of resources for a course.
 
-- **Endpoint:** `GET /api/Courses/resources/:courseId`  
+- **Endpoint:** `GET /api/v1/Courses/resources/:courseId`
 - **Access:** Private (Authenticated Users)
 
-### Response Property: `downloadUrl`
-Each resource in the list includes a `downloadUrl` property (e.g., `/api/Courses/resource/download/:resourceId`). **Always use this proxy URL** to access the file, as it handles authentication and proper file headers.
+### Query Parameters
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | `number` | `25` | Number of items to return. |
+| `cursor` | `string` | `null` | Cursor for pagination. |
+| `sort` | `string` | `-createdAt` | Sort field (prefix with `-` for desc). |
+| `fields` | `string` | `-__v` | Comma-separated fields to include. |
+
+### Response
+- **200 OK**: Returns list of resources with cursor pagination metadata.
+    ```json
+    {
+      "success": true,
+      "data": [
+        {
+          "_id": "...",
+          "fileName": "lecture1.pdf",
+          "downloadUrl": "/api/v1/Courses/resource/download/...",
+          ...
+        }
+      ],
+      "total": 10,
+      "nextCursor": "...",
+      "hasMore": true
+    }
+    ```
 
 ---
 
@@ -67,7 +91,7 @@ Each resource in the list includes a `downloadUrl` property (e.g., `/api/Courses
 
 Securely download or preview a resource through the backend.
 
-- **Endpoint:** `GET /api/Courses/resource/download/:resourceId`  
+- **Endpoint:** `GET /api/v1/Courses/resource/download/:resourceId`  
 - **Access:** Private (Authenticated Users)
 
 ### Behavior
@@ -80,9 +104,34 @@ Securely download or preview a resource through the backend.
 
 ## 5. Course Material Generation (AI)
 
-- **Create Material (Job)**: `POST /api/Courses/courseMaterial/:courseId`
-- **Check Status**: `GET /api/Courses/courseMaterial/status/:jobId`
-- **Get All Materials**: `GET /api/Courses/courseMaterials/:courseId`
+### A. Create Material (Job)
+Combines all extracted PDF content and queues an AI job to generate study materials.
+
+- **Endpoint:** `POST /api/v1/Courses/courseMaterial/:courseId`
+- **Access:** Private (Lecturer only)
+- **Response**: Returns a `jobId` to track progress.
+
+### B. Check Status
+Poll the status of a background AI job.
+
+- **Endpoint:** `GET /api/v1/Courses/courseMaterial/status/:jobId`
+- **Access:** Private (Lecturer only)
+- **Response**:
+  - `status`: `waiting`, `active`, `completed`, or `failed`.
+  - `courseMaterial`: Returned when status is `completed`.
+
+### C. Get All Materials
+Get all AI-generated materials for a course.
+
+- **Endpoint:** `GET /api/v1/Courses/courseMaterials/:courseId`
+- **Query Parameters**: `limit`, `cursor`.
+- **Response**: Paginated list of course materials.
+
+### D. Get All Resource Content (Raw)
+Fetches all extracted PDF text content concatenated.
+
+- **Endpoint:** `GET /api/v1/Courses/resourceContents/:courseId`
+- **Response**: `data` contains all text content joined by delimiters.
 
 ---
 
@@ -90,7 +139,7 @@ Securely download or preview a resource through the backend.
 
 Permanently removes a course and **all** associated data.
 
-- **Endpoint:** `DELETE /api/Courses/:courseId`  
+- **Endpoint:** `DELETE /api/v1/Courses/:courseId`  
 - **Access:** Private (Course Owner Only)
 
 ### Cascading Deletion

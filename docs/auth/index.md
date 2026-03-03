@@ -1,6 +1,6 @@
 # Authentication API Documentation
 
-**Base URL:** `/api/Auth`  
+**Base URL:** `/api/v1/Auth`  
 **Version:** 1.1
 
 ---
@@ -22,7 +22,7 @@
 
 Creates a new user account. Implements localized country detection and role-based validation.
 
-**Endpoint:** `POST /api/Auth/register`
+**Endpoint:** `POST /api/v1/Auth/register`
 
 ### Request Body
 
@@ -97,7 +97,7 @@ Creates a new user account. Implements localized country detection and role-base
 
 Authenticates user and returns access/refresh tokens as HttpOnly cookies. Updates login streak.
 
-**Endpoint:** `POST /api/Auth/login`
+**Endpoint:** `POST /api/v1/Auth/login`
 
 ### Request Body
 
@@ -155,7 +155,7 @@ Authenticates user and returns access/refresh tokens as HttpOnly cookies. Update
 
 Logs out the user and clears all tokens.
 
-**Endpoint:** `POST /api/Auth/logout`
+**Endpoint:** `POST /api/v1/Auth/logout`
 
 ### Success Response (200)
 
@@ -185,7 +185,7 @@ Step 1: Send OTP → Step 2: Verify OTP → Step 3: Reset Password
 
 Sends a 4-digit OTP to the user's email.
 
-**Endpoint:** `POST /api/Auth/send-otp`
+**Endpoint:** `POST /api/v1/Auth/send-otp`
 
 ### Request Body
 
@@ -214,7 +214,7 @@ Sends a 4-digit OTP to the user's email.
 
 Verifies the 4-digit OTP code sent to email.
 
-**Endpoint:** `POST /api/Auth/verify-otp`
+**Endpoint:** `POST /api/v1/Auth/verify-otp`
 
 ### Request Body
 
@@ -246,7 +246,7 @@ Verifies the 4-digit OTP code sent to email.
 
 Sets a new password after OTP verification.
 
-**Endpoint:** `PATCH /api/Auth/reset-password`
+**Endpoint:** `PATCH /api/v1/Auth/reset-password`
 
 ### Request Body
 
@@ -274,7 +274,7 @@ Sets a new password after OTP verification.
 
 Gets a new set of access and refresh tokens using token rotation.
 
-**Endpoint:** `POST /api/Auth/refresh-token`
+**Endpoint:** `POST /api/v1/Auth/refresh-token`
 
 ### Cookies Required
 
@@ -307,14 +307,14 @@ Gets a new set of access and refresh tokens using token rotation.
 │                    PASSWORD RESET FLOW                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                   │
-│  1. POST /api/Auth/send-otp                                      │
+│  1. POST /api/v1/Auth/send-otp                                      │
 │     Body: { "email": "user@example.com" }                        │
 │     → Sets otpCodeToken cookie                                    │
 │     → Sends 4-digit OTP to email                                 │
 │                                                                   │
 │                         ↓                                         │
 │                                                                   │
-│  2. POST /api/Auth/verify-otp                                    │
+│  2. POST /api/v1/Auth/verify-otp                                    │
 │     Body: { "otpCode": "1234" }                                  │
 │     Cookie: otpCodeToken (auto-sent)                              │
 │     → Verifies OTP                                               │
@@ -322,7 +322,7 @@ Gets a new set of access and refresh tokens using token rotation.
 │                                                                   │
 │                         ↓                                         │
 │                                                                   │
-│  3. PATCH /api/Auth/reset-password                               │
+│  3. PATCH /api/v1/Auth/reset-password                               │
 │     Body: { "password": "new", "confirmPassword": "new" }         │
 │     Cookie: otpCodeToken (auto-sent)                              │
 │     → Updates password                                            │

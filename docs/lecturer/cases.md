@@ -1,6 +1,6 @@
 # Lecturer Case Management API
 
-**Base URL:** `/api/LecturerCases`
+**Base URL:** `/api/v1/LecturerCases`
 **Description:** Manages course-specific case studies and materials. These cases are uploaded by lecturers and can have AI quizzes attached. They are stored in the `lecturerCases` collection.
 
 ---
@@ -9,7 +9,7 @@
 Create a new case for a specific course.
 
 **Endpoint:** `POST /:courseId`
-**Authentication:** Required (Lecturer must own the course)
+**Authentication:** Required (Lecturer or Approved Sub-Lecturer)
 **Content-Type:** `multipart/form-data`
 
 ### Path Parameters
@@ -23,7 +23,7 @@ Create a new case for a specific course.
 | `title` | `string` | Yes | Title of the case. Must be unique within the course. |
 | `sourceOfCase` | `string` | Yes | The source/origin of the case. |
 | `caseCode` | `string` | Yes | Unique code identifier for the case. |
-| `caseCategory` | `string` | Yes | Category of the case (e.g., Criminal, Civil). |
+| `caseCategory` | `string` | Yes | Category of the case. |
 | `caseDocument` | `File` | Yes | PDF file upload associated with the case. |
 
 ### Responses
@@ -49,34 +49,34 @@ Retrieve a paginated list of cases for a specific course with optional filtering
 ### Query Parameters
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `page` | `number` | `1` | Page number for pagination. |
-| `limit` | `number` | `10` | Number of items per page (max 100). |
-| `title` | `string` | - | Filter cases by title (case-insensitive search). |
-| `category` | `string` | - | Filter cases by category (case-insensitive search). |
-| `sortedBy` | `string` | `_id` | Field to sort by (e.g., `title`, `caseCode`). |
+| `limit` | `number` | `25` | Number of items to return. |
+| `cursor` | `string` | `null` | Cursor for pagination. |
+| `title` | `string` | - | Filter cases by title (regex). |
+| `category` | `string` | - | Filter cases by category (regex). |
 | `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc`. |
 
 ### Responses
-- **200 OK**: Returns list of cases with pagination metadata.
+- **200 OK**: Returns list of cases with cursor pagination metadata.
     ```json
     {
       "success": true,
-      "count": 10,
+      "count": 25,
       "total": 50,
-      "totalPages": 5,
-      "currentPage": 1,
       "data": [
         {
           "_id": "...",
           "title": "Case Title",
-          "url": "https://res.cloudinary.com/... (Signed URL if document exists)",
+          "url": "https://res.cloudinary.com/... (Signed URL)",
           ...
         }
-      ]
+      ],
+      "nextCursor": "...",
+      "hasMore": true
     }
     ```
 - **400 Bad Request**: Missing course ID.
 - **500 Server Error**: Internal server error.
+
 ---
 
 ## 3. Get All Cases (By Lecturer)
@@ -88,30 +88,29 @@ Retrieve a paginated list of all cases created by the authenticated lecturer, fi
 ### Query Parameters
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `page` | `number` | `1` | Page number for pagination. |
-| `limit` | `number` | `10` | Number of items per page (max 100). |
-| `title` | `string` | - | Filter cases by title (case-insensitive search). |
-| `category` | `string` | - | Filter cases by category (case-insensitive search). |
-| `sortedBy` | `string` | `_id` | Field to sort by (e.g., `title`, `caseCode`). |
+| `limit` | `number` | `25` | Number of items to return. |
+| `cursor` | `string` | `null` | Cursor for pagination. |
+| `title` | `string` | - | Filter cases by title (regex). |
+| `category` | `string` | - | Filter cases by category (regex). |
 | `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc`. |
 
 ### Responses
-- **200 OK**: Returns list of cases with pagination metadata.
+- **200 OK**: Returns list of cases with cursor pagination metadata.
     ```json
     {
       "success": true,
-      "count": 10,
+      "count": 25,
       "total": 50,
-      "totalPages": 5,
-      "currentPage": 1,
       "data": [
         {
           "_id": "...",
           "title": "Case Title",
-          "url": "https://res.cloudinary.com/... (Signed URL if document exists)",
+          "url": "https://res.cloudinary.com/... (Signed URL)",
           ...
         }
-      ]
+      ],
+      "nextCursor": "...",
+      "hasMore": true
     }
     ```
 - **500 Server Error**: Internal server error.
@@ -122,7 +121,7 @@ Retrieve a paginated list of all cases created by the authenticated lecturer, fi
 Delete a specific case.
 
 **Endpoint:** `DELETE /:id`
-**Authentication:** Required (Must be the creator of the case)
+**Authentication:** Required (Lecturer must be the creator of the case)
 
 ### Path Parameters
 | Parameter | Type | Description |
@@ -130,6 +129,6 @@ Delete a specific case.
 | `id` | `string` | The ID of the case to delete. |
 
 ### Responses
-- **200 OK**: Case deleted successfully.
+- **200 OK**: Case and all related data (quizzes, submissions) deleted successfully.
 - **404 Not Found**: Case not found or unauthorized.
 - **500 Server Error**: Internal server error.

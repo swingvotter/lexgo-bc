@@ -1,6 +1,6 @@
 # AI API Documentation
 
-**Base URL:** `/api/ai`  
+**Base URL:** `/api/v1/Ai`  
 **Version:** 1.0
 
 ---
@@ -16,7 +16,7 @@
 
 Ask the AI a legal question and receive a **real-time streaming response** using Server-Sent Events (SSE). The response streams word-by-word, similar to ChatGPT.
 
-**Endpoint:** `POST /api/ai/ask`
+**Endpoint:** `POST /api/v1/Ai/ask`
 
 ### Authentication
 
@@ -102,7 +102,7 @@ data: [DONE]
 
 **Example Flow (Pseudocode):**
 ```
-1. POST /api/ai/ask with { question: "..." }
+1. POST /api/v1/Ai/ask with { question: "..." }
 2. Open stream reader on response body
 3. For each line in stream:
    - If line starts with "data: ":
@@ -116,7 +116,7 @@ data: [DONE]
 **React Native Example:**
 ```javascript
 const askAI = async (question, token) => {
-  const response = await fetch('http://localhost:3000/api/ai/ask', {
+  const response = await fetch('http://localhost:3000/api/v1/Ai/ask', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const askAI = async (question, token) => {
 ```dart
 Future<String> askAI(String question, String token) async {
   final response = await http.post(
-    Uri.parse('http://localhost:3000/api/ai/ask'),
+    Uri.parse('http://localhost:3000/api/v1/Ai/ask'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -209,10 +209,28 @@ After streaming completes, the backend automatically:
 
 ## 2. AI History
 
-**Endpoint:** `GET /api/ai/history`  
-**Status:** Not yet implemented
+**Endpoint:** `GET /api/v1/Ai/history`  
+**Status:** Active
 
-Will allow users to retrieve past AI conversations.
+Retrieves a paginated list of the user's past interactions with the AI.
+
+### Query Parameters
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | `number` | `25` | Items per page |
+| `cursor` | `string` | `null` | Pagination cursor |
+
+### Response
+- **200 OK**
+```json
+{
+  "success": true,
+  "message": "AI history fetched successfully",
+  "aiHistory": [ ... ],
+  "nextCursor": "...",
+  "hasMore": true
+}
+```
 
 ---
 

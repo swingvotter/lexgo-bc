@@ -1,5 +1,5 @@
 # Admin Case Management API
-**Base URL:** `/api/Admin/cases`  
+**Base URL:** `/api/v1/Cases`  
 **Version:** 1.0
 **Collection:** `adminCases`
 
@@ -26,7 +26,7 @@ The Admin Case API allows for management of the global legal case database. Thes
 
 Allows an administrator to add multiple cases in a single request. This endpoint validates for duplicate citations both within the request body and against existing database records.
 
-**Endpoint:** `POST /api/Admin/cases/bulk`  
+**Endpoint:** `POST /api/v1/Cases/bulk`  
 **Access:** Private (Admin Only)
 
 ### Authentication
@@ -308,7 +308,7 @@ createBulkCases(cases, adminAccessToken);
 
 Create a single case in the database.
 
-**Endpoint:** `POST /api/Admin/cases`  
+**Endpoint:** `POST /api/v1/Cases`  
 **Access:** Private (Admin Only)
 
 ### Request Body
@@ -372,17 +372,16 @@ Accepts the same fields as bulk create, but as a **single object** (not an array
 
 Retrieve all cases with pagination, filtering, and search capabilities.
 
-**Endpoint:** `GET /api/Admin/cases`  
+**Endpoint:** `GET /api/v1/Cases`  
 **Access:** Private (Authenticated Users)
 
 ### Query Parameters
 
 | Parameter | Type | Default | Max | Description |
 |-----------|------|---------|-----|-------------|
-| `page` | number | 1 | - | Page number for pagination |
-| `limit` | number | 10 | 50 | Number of items per page |
-| `sortBy` | string | "createdAt" | - | Field to sort by (e.g., "title", "judgmentDate", "createdAt") |
-| `order` | string | "desc" | - | Sort order: "asc" or "desc" |
+| `limit` | number | 25 | - | Number of items per page |
+| `cursor` | string | null | - | Cursor for pagination |
+| `order` | string | "desc" | - | Sort order: "asc" or "desc" (Sorts by ID) |
 | `search` | string | - | - | Search in title, citation, summary, ratioDecidendi, keywords |
 | `title` | string | - | - | Filter by exact title |
 | `citation` | string | - | - | Filter by exact citation |
@@ -393,10 +392,10 @@ Retrieve all cases with pagination, filtering, and search capabilities.
 ### Example Requests
 
 ```http
-GET /api/Admin/cases?page=1&limit=20
-GET /api/Admin/cases?search=constitutional
-GET /api/Admin/cases?jurisdiction=Ghana&courtLevel=Supreme Court
-GET /api/Admin/cases?sortBy=judgmentDate&order=asc
+GET /api/v1/Cases?limit=20
+GET /api/v1/Cases?search=constitutional
+GET /api/v1/Cases?jurisdiction=Ghana&courtLevel=Supreme Court
+GET /api/v1/Cases?order=asc
 ```
 
 ### Success Response (200)
@@ -404,12 +403,6 @@ GET /api/Admin/cases?sortBy=judgmentDate&order=asc
 ```json
 {
   "success": true,
-  "meta": {
-    "total": 150,
-    "page": 1,
-    "limit": 10,
-    "totalPages": 15
-  },
   "data": [
     {
       "_id": "697ecca5507912f32059a3b9",
@@ -420,10 +413,13 @@ GET /api/Admin/cases?sortBy=judgmentDate&order=asc
       "parties": [ ... ],
       "judges": [ ... ],
       "createdAt": "2026-02-01T03:46:45.417Z",
-      "updatedAt": "2026-02-01T03:46:45.417Z"
+      "updatedAt": "2026-02-01T03:46:45.417Z",
+      "__v": 0
     },
     ...
-  ]
+  ],
+  "nextCursor": "...",
+  "hasMore": true
 }
 ```
 
@@ -467,7 +463,7 @@ const cases = await getCases({
 
 Retrieve a single case by its ID.
 
-**Endpoint:** `GET /api/Admin/cases/:id`  
+**Endpoint:** `GET /api/v1/Cases/:id`  
 **Access:** Private (Authenticated Users)
 
 ### Success Response (200)
@@ -499,7 +495,7 @@ Retrieve a single case by its ID.
 
 Update an existing case.
 
-**Endpoint:** `PATCH /api/Admin/cases/:id`  
+**Endpoint:** `PATCH /api/v1/Cases/:id`  
 **Access:** Private (Admin Only)
 
 ### Request Body
@@ -512,7 +508,7 @@ All fields are optional. Only include fields you want to update.
 
 Delete a case from the database.
 
-**Endpoint:** `DELETE /api/Admin/cases/:id`  
+**Endpoint:** `DELETE /api/v1/Cases/:id`  
 **Access:** Private (Admin Only)
 
 ### Success Response (200)

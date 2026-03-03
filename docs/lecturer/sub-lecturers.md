@@ -1,6 +1,6 @@
 # Sub-Lecturer API Documentation
 
-**Base URL:** `/api/SubLecturer`
+**Base URL:** `/api/v1/SubLecturer`
 **Version:** 1.0
 
 ---
@@ -22,7 +22,7 @@ A Lecturer can request to be a sub-lecturer for a specific course.
   - `courseId` (string): The ID of the course.
 - **Responses**:
   - `201 Created`: Request submitted successfully.
-  - `400 Bad Request`: Already the owner, or request already exists.
+  - `400 Bad Request`: Invalid course ID, already the owner, or request already exists.
   - `404 Not Found`: Course does not exist.
 
 ---
@@ -38,7 +38,7 @@ The course owner can fetch all pending sub-lecturer requests for their course.
   ```json
   {
     "success": true,
-    "count": 2,
+    "message": "Pending sub-lecturer requests fetched successfully",
     "data": [
       {
         "_id": "64...",
@@ -71,7 +71,9 @@ The course owner can approve or reject a pending request.
   ```
 - **Responses**:
   - `200 OK`: Request handled successfully.
-  - `400 Bad Request`: Invalid action or request not found.
+  - `400 Bad Request`: Invalid action or invalid IDs.
+  - `403 Forbidden`: Only the course owner can manage sub-lecturer requests.
+  - `404 Not Found`: Course or pending request not found.
 
 ---
 
@@ -82,7 +84,11 @@ Fetch a list of all approved sub-lecturers for a specific course.
 **Endpoint:** `GET /api/SubLecturer/:courseId`
 **Access:** Private (Course Owner only)
 
-- **Success Response (200)**: returns list of approved sub-lecturers.
+**Query Parameters:**
+- `limit` (optional, default 25)
+- `cursor` (optional, for pagination)
+
+- **Success Response (200)**: returns a paginated list of approved sub-lecturers with populated lecturer info.
 
 ---
 
@@ -95,7 +101,9 @@ Remove an approved sub-lecturer from a course.
 
 - **Responses**:
   - `200 OK`: Sub-lecturer removed successfully.
-  - `404 Not Found`: Record not found.
+  - `400 Bad Request`: Invalid course ID or lecturer ID.
+  - `403 Forbidden`: Only the course owner can remove sub-lecturers.
+  - `404 Not Found`: Course or sub-lecturer record not found.
 
 ---
 

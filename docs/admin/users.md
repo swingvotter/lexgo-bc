@@ -1,6 +1,6 @@
 # Admin API Documentation
 
-**Base URL:** `/api/Admin`  
+**Base URL:** `/api/v1/Admin`  
 **Version:** 1.0
 
 ---
@@ -23,7 +23,7 @@ All endpoints in this section require:
 
 Fetches a paginated list of all users with optional filtering, searching, and sorting capabilities.
 
-**Endpoint:** `GET /api/Admin/users`
+**Endpoint:** `GET /api/v1/Admin/users`
 
 ### Authentication & Authorization
 
@@ -38,42 +38,41 @@ Authorization: Bearer <accessToken>
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `page` | number | ❌ No | 1 | Page number (min: 1) |
-| `limit` | number | ❌ No | 10 | Items per page (min: 1, max: 100) |
+| `limit` | number | ❌ No | 25 | Items per page (max: 100) |
+| `cursor` | string | ❌ No | null | Cursor for pagination |
 | `role` | string | ❌ No | - | Filter by role: `student`, `lecturer`, `admin`, `judge`, `lawyer` |
 | `search` | string | ❌ No | - | Search in email, firstName, lastName (case-insensitive) |
-| `sortBy` | string | ❌ No | `createdAt` | Sort field: `createdAt`, `email`, `firstName`, `lastName`, `role` |
 | `sortOrder` | string | ❌ No | `desc` | Sort order: `asc` or `desc` |
 
 ### Example Requests
 
 #### Basic Request
 ```http
-GET /api/Admin/users
+GET /api/v1/Admin/users
 Authorization: Bearer <accessToken>
 ```
 
 #### With Pagination
 ```http
-GET /api/Admin/users?page=2&limit=20
+GET /api/v1/Admin/users?limit=20&cursor=<nextCursor>
 Authorization: Bearer <accessToken>
 ```
 
 #### With Filtering
 ```http
-GET /api/Admin/users?role=student&page=1&limit=10
+GET /api/v1/Admin/users?role=student&limit=10
 Authorization: Bearer <accessToken>
 ```
 
 #### With Search
 ```http
-GET /api/Admin/users?search=john&page=1&limit=10
+GET /api/v1/Admin/users?search=john&limit=10
 Authorization: Bearer <accessToken>
 ```
 
 #### With Sorting
 ```http
-GET /api/Admin/users?sortBy=email&sortOrder=asc&page=1&limit=10
+GET /api/v1/Admin/users?sortOrder=asc&limit=10
 Authorization: Bearer <accessToken>
 ```
 
@@ -95,34 +94,14 @@ Authorization: Bearer <accessToken>
       "firstName": "John",
       "lastName": "Doe",
       "email": "john.doe@example.com",
-      "phoneNumber": "+233123456789",
-      "university": "University of Ghana",
-      "acadamicLevel": "Level 300",
-      "program": "LL.B",
-      "studentId": "STU123456",
       "role": "student",
-      "onboardingCompleted": false,
-      "progress": {
-        "lessonsCompleted": 5,
-        "learningStreak": 3,
-        "lastActiveDate": "2024-12-01T00:00:00.000Z"
-      },
-      "askAI": 12,
-      "detectedCountry": "GH",
-      "createdAt": "2024-11-15T00:00:00.000Z"
+      // ... other fields
     }
-    // ... more users
   ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "totalItems": 150,
-    "totalPages": 15,
-    "hasNextPage": true,
-    "hasPrevPage": false,
-    "startIndex": 1,
-    "endIndex": 10
-  }
+  "totalStudents": 150,
+  "totalItems": 200,
+  "nextCursor": "eyJfaWQiOiI2NGE...",
+  "hasMore": true
 }
 ```
 
@@ -167,15 +146,15 @@ Authorization: Bearer <accessToken>
 
 ```javascript
 // Example: Fetch users with pagination
-const fetchUsers = async (page = 1, limit = 10, filters = {}) => {
+const fetchUsers = async (limit = 10, cursor = null, filters = {}) => {
   const params = new URLSearchParams({
-    page: page.toString(),
     limit: limit.toString(),
+    ...(cursor && { cursor }),
     ...filters
   });
   
   const response = await axios.get(
-    `/api/Admin/users?${params}`,
+    `/api/v1/Admin/users?${params}`,
     {
       headers: {
         'Authorization': `Bearer ${accessToken}`
