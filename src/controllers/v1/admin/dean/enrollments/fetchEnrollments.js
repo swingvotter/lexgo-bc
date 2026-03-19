@@ -1,5 +1,7 @@
 const path = require('../../../../path');
 const Enrollment = require(path.models.users.enrollment);
+const User = require(path.models.users.user);
+const Course = require(path.models.lecturer.course);
 const cursorPagination = require(path.utils.cursorPagination);
 const asyncHandler = require(path.utils.asyncHandler);
 const logger = require(path.config.logger);
@@ -10,10 +12,23 @@ const logger = require(path.config.logger);
 const adminFetchEnrollmentsHandler = async (req, res) => {
     const limit = Number(req.query.limit || 25);
     const cursor = req.query.cursor || null;
+    const deanUniversity = req.userInfo?.university;
 
-    const query = {};
+    const lecturersInUniversity = await User.find({
+        role: "lecturer",
+        university: deanUniversity,
+    }).select("_id").lean();
 
-    // Status filter
+    const lecturerIds = lecturersInUniversity.map((l) => l._id);
+
+    const coursesInUniversity = await Course.find({
+        lecturerId: { $in: lecturerIds }
+    }).select("_id").lean();
+
+    const courseIds = coursesInUniversity.map((c) => c._id);
+
+    const query = { course: { $in: courseIds } };
+
     if (req.query.status) {
         const allowedStatus = ["pending", "approved", "rejected"];
         if (allowedStatus.includes(req.query.status)) {
@@ -21,7 +36,6 @@ const adminFetchEnrollmentsHandler = async (req, res) => {
         }
     }
 
-    // Execute queries in parallel
     const [result, totalItems] = await Promise.all([
         cursorPagination({
             model: Enrollment,

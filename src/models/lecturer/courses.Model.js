@@ -19,9 +19,8 @@ const courseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-courseSchema.index({ title: 1, _id: -1 });
-courseSchema.index({ courseCode: 1, _id: -1 });
-courseSchema.index({ category: 1, _id: -1 });
+courseSchema.index({ lecturerId: 1, _id: -1 });
+courseSchema.index({ title: "text", courseCode: "text", category: "text" });
 
 const Course = mongoose.model("Course", courseSchema);
 module.exports = Course;

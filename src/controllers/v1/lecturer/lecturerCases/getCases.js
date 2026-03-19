@@ -20,12 +20,9 @@ const getCases = async (req, res) => {
 
     const queryObject = { courseId };
 
-    if (title) {
-        queryObject.title = { $regex: title, $options: "i" };
-    }
-
-    if (category) {
-        queryObject.caseCategory = { $regex: category, $options: "i" };
+    if (title || category) {
+        const searchTerms = [title, category].filter(Boolean).join(" ");
+        queryObject.$text = { $search: searchTerms };
     }
 
     const sortObject = { _id: sortOrder === "asc" ? 1 : -1 };

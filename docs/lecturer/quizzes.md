@@ -82,18 +82,25 @@ Upload a PDF/DOCX to generate questions automatically using AI.
 ## 4. Management Endpoints
 
 ### A. Get Course Quizzes (Created by the current lecturer)
-**Endpoint:** `GET /api/LecturerQuiz/course/:courseId`
+**Endpoint:** `GET /api/v1/LecturerQuiz/course/:courseId`
+
+**Path Parameters:**
+- `courseId` (required): The course ID
 
 **Query Parameters:**
-- `limit` (optional, default 25)
-- `cursor` (optional, for pagination)
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | number | 25 | Items per page |
+| `cursor` | string | null | Pagination cursor |
 
 ### B. Get My Quizzes (Paginated)
-**Endpoint:** `GET /api/LecturerQuiz/my-quizzes`
+**Endpoint:** `GET /api/v1/LecturerQuiz/my-quizzes`
 
 **Query Parameters:**
-- `limit` (optional, default 25)
-- `cursor` (optional, for pagination)
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | number | 25 | Items per page |
+| `cursor` | string | null | Pagination cursor |
 
 ### C. Delete Quiz
 **Endpoint:** `DELETE /api/LecturerQuiz/:quizId`

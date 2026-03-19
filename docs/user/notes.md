@@ -44,15 +44,13 @@ Retrieves a paginated list of the authenticated user's notes with optional filte
 
 ### Query Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `page` | number | ❌ No | Page number (default: 1, min: 1) |
-| `limit` | number | ❌ No | Items per page (default: 10, max: 100) |
-| `legalTopic` | string | ❌ No | Filter by legal topic (exact match) |
-| `importanceLevel` | string | ❌ No | Filter by importance: `Low Priority`, `Medium Priority`, `High Priority` |
-| `search` | string | ❌ No | Search in title, content, and legalTopic (max 100 chars, case-insensitive) |
-| `sortBy` | string | ❌ No | Sort field: `createdAt`, `updatedAt`, `title`, `importanceLevel`, `legalTopic` (default: `createdAt`) |
-| `sortOrder` | string | ❌ No | Sort direction: `asc` or `desc` (default: `desc`) |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `limit` | number | ❌ No | 25 | Items per page |
+| `cursor` | string | ❌ No | null | Cursor for pagination |
+| `topic` | string | ❌ No | - | Filter by legal topic (exact match) |
+| `importanceLevel` | string | ❌ No | - | Filter by importance: `Low Priority`, `Medium Priority`, `High Priority` |
+| `search` | string | ❌ No | - | Full-text search in title and legalTopic (uses $text index) |
 
 ### Example Request
 

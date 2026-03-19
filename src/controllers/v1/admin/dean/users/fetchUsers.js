@@ -19,16 +19,11 @@ const adminFindUsersHandler = async (req, res) => {
     }
   }
 
-  // Search filter (email, firstName, lastName)
+  // Search filter (email, firstName, lastName) using $text index
   if (req.query.search && typeof req.query.search === "string") {
     const searchTerm = req.query.search.trim();
     if (searchTerm.length > 0) {
-      const searchRegex = { $regex: searchTerm, $options: "i" };
-      query.$or = [
-        { email: searchRegex },
-        { firstName: searchRegex },
-        { lastName: searchRegex }
-      ];
+      query.$text = { $search: searchTerm };
     }
   }
 

@@ -9,8 +9,9 @@ module.exports = {
             case: path.join(__dirname, "models", "admin", "adminCase.Model"),
         },
         lecturer: {
+            batch: path.join(__dirname, "models", "lecturer", "batch"),
+            batchData: path.join(__dirname, "models", "lecturer", "batchData"),
             caseQuiz: path.join(__dirname, "models", "lecturer", "caseQuiz.Model"),
-
             courseMaterial: path.join(__dirname, "models", "lecturer", "courseMaterial"),
             course: path.join(__dirname, "models", "lecturer", "courses.Model"),
             case: path.join(__dirname, "models", "lecturer", "lecturerCase.Model"),
@@ -90,6 +91,7 @@ module.exports = {
     middleware: {
         admin: path.join(__dirname, "middleware", "adminMiddleware"),
         auth: path.join(__dirname, "middleware", "authMiddleware"),
+        dean: path.join(__dirname, "middleware", "deanMiddleware"),
         geoIp: path.join(__dirname, "middleware", "geoIpMiddleware"),
         lecturer: path.join(__dirname, "middleware", "lecturerMiddleware"),
         multer: path.join(__dirname, "middleware", "multerMiddleware"),

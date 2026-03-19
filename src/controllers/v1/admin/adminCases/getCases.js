@@ -41,18 +41,10 @@ const getAllCases = async (req, res) => {
   }
 
   // ---------------------------
-  // 4. Search
+  // 4. Search using $text index
   // ---------------------------
   if (req.query.search) {
-    const searchRegex = new RegExp(req.query.search, "i");
-
-    filter.$or = [
-      { title: searchRegex },
-      { citation: searchRegex },
-      { summary: searchRegex },
-      { ratioDecidendi: searchRegex },
-      { keywords: searchRegex },
-    ];
+    filter.$text = { $search: req.query.search };
   }
 
   // ---------------------------

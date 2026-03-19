@@ -51,9 +51,9 @@ Retrieve a paginated list of cases for a specific course with optional filtering
 | :--- | :--- | :--- | :--- |
 | `limit` | `number` | `25` | Number of items to return. |
 | `cursor` | `string` | `null` | Cursor for pagination. |
-| `title` | `string` | - | Filter cases by title (regex). |
-| `category` | `string` | - | Filter cases by category (regex). |
-| `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc`. |
+| `title` | `string` | - | Search by title (uses $text index, combined with category). |
+| `category` | `string` | - | Search by category (uses $text index, combined with title). |
+| `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc` (sorts by _id). |
 
 ### Responses
 - **200 OK**: Returns list of cases with cursor pagination metadata.
@@ -90,9 +90,9 @@ Retrieve a paginated list of all cases created by the authenticated lecturer, fi
 | :--- | :--- | :--- | :--- |
 | `limit` | `number` | `25` | Number of items to return. |
 | `cursor` | `string` | `null` | Cursor for pagination. |
-| `title` | `string` | - | Filter cases by title (regex). |
-| `category` | `string` | - | Filter cases by category (regex). |
-| `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc`. |
+| `title` | `string` | - | Search by title (uses $text index, combined with category). |
+| `category` | `string` | - | Search by category (uses $text index, combined with title). |
+| `sortOrder` | `string` | `desc` | Sort direction: `asc` or `desc` (sorts by _id). |
 
 ### Responses
 - **200 OK**: Returns list of cases with cursor pagination metadata.

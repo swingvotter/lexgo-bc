@@ -82,6 +82,8 @@ const quizSchema = new mongoose.Schema(
   }
 );
 
-quizSchema.index({ userId: 1, createdAt: -1 });
+quizSchema.index({ userId: 1, _id: -1 });
+quizSchema.index({ userId: 1, completed: 1, _id: -1 });
+quizSchema.index({ userId: 1, difficultyLevel: 1, _id: -1 });
 
 module.exports = mongoose.model("Quiz", quizSchema);

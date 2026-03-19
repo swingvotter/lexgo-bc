@@ -22,6 +22,7 @@ const CaseSchema = new mongoose.Schema({
 
 CaseSchema.index({ lecturerId: 1, _id: -1 });
 CaseSchema.index({ courseId: 1, _id: -1 });
+CaseSchema.index({ title: "text", caseCategory: "text" });
 
 const LecturerCase = mongoose.model("LecturerCase", CaseSchema, "lecturerCases");
 module.exports = LecturerCase;

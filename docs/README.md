@@ -20,6 +20,7 @@ This documentation is organized by user roles and functional modules:
 - **[Common Reference](./general/common.md)** - Error formats, Cookies, and Best practices.
 
 ### 2. 👨‍🏫 Lecturer Modules
+- **[Batch Management](./lecturer/batches.md)** - Managing batches of students.
 - **[Course Management](./lecturer/courses.md)** - Creating courses, uploading resources, and AI material generation.
 - **[Quiz System](./lecturer/quizzes.md)** - Creating manual and AI-generated quizzes.
 - **[Case Management](./lecturer/cases.md)** - Managing legal cases within courses.
@@ -34,6 +35,7 @@ This documentation is organized by user roles and functional modules:
 ### 4. 🛠️ Administrative Modules
 - **[User Management](./admin/users.md)** - Fetching and managing user accounts.
 - **[Global Cases](./admin/cases.md)** - Managing the global legal case database.
+- **[Dean & Vice Dean Access](./admin/dean.md)** - University-scoped administrative access for deans.
 
 ---
 

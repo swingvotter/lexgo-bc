@@ -23,6 +23,8 @@ const studentQuizRouter = require("./routes/v1/student_quiz.routes");
 const studentCaseRouter = require("./routes/v1/student_case.routes");
 const subLecturerRouter = require("./routes/v1/subLecturer.routes");
 const healthRouter = require("./routes/v1/health.routes");
+const batchRouter = require("./routes/v1/batch.routes");
+const deanRouter = require("./routes/v1/dean.routes");
 
 
 app.use(
@@ -75,6 +77,8 @@ app.use("/api/v1/StudentQuiz", studentQuizRouter);
 app.use("/api/v1/StudentCases", studentCaseRouter);
 app.use("/api/v1/SubLecturer", subLecturerRouter);
 app.use("/api/v1/Health", healthRouter);
+app.use("/api/v1/Batches", batchRouter);
+app.use("/api/v1/Dean", deanRouter);
 app.use(globalErrorHandler);
 
 

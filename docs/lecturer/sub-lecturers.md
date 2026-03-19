@@ -81,12 +81,17 @@ The course owner can approve or reject a pending request.
 
 Fetch a list of all approved sub-lecturers for a specific course.
 
-**Endpoint:** `GET /api/SubLecturer/:courseId`
+**Endpoint:** `GET /api/v1/SubLecturer/:courseId`
 **Access:** Private (Course Owner only)
 
+**Path Parameters:**
+- `courseId` (string, required): The course ID
+
 **Query Parameters:**
-- `limit` (optional, default 25)
-- `cursor` (optional, for pagination)
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | number | 25 | Items per page |
+| `cursor` | string | null | Pagination cursor |
 
 - **Success Response (200)**: returns a paginated list of approved sub-lecturers with populated lecturer info.
 

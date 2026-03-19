@@ -63,8 +63,8 @@ Get a paginated list of resources for a course.
 | :--- | :--- | :--- | :--- |
 | `limit` | `number` | `25` | Number of items to return. |
 | `cursor` | `string` | `null` | Cursor for pagination. |
-| `sort` | `string` | `-createdAt` | Sort field (prefix with `-` for desc). |
-| `fields` | `string` | `-__v` | Comma-separated fields to include. |
+| `sort` | `string` | `-createdAt` | Sort field (prefix with `-` for desc, sorts by _id). |
+| `fields` | `string` | `-__v` | Comma-separated fields to include/exclude. |
 
 ### Response
 - **200 OK**: Returns list of resources with cursor pagination metadata.
@@ -124,7 +124,9 @@ Poll the status of a background AI job.
 Get all AI-generated materials for a course.
 
 - **Endpoint:** `GET /api/v1/Courses/courseMaterials/:courseId`
-- **Query Parameters**: `limit`, `cursor`.
+- **Query Parameters**:
+  - `limit` (number, default 25): Items per page
+  - `cursor` (string, default null): Pagination cursor
 - **Response**: Paginated list of course materials.
 
 ### D. Get All Resource Content (Raw)

@@ -31,9 +31,10 @@ const noteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Avoid duplicate titles per user for scale and data consistency
-noteSchema.index({ userId: 1 }, { unique: true });
-
-noteSchema.index({ title: "text", legalTopic: "text"});
+// Compound indexes for query patterns
+noteSchema.index({ userId: 1, _id: -1 });
+noteSchema.index({ userId: 1, legalTopic: 1, _id: -1 });
+noteSchema.index({ userId: 1, importanceLevel: 1, _id: -1 });
+noteSchema.index({ title: "text", legalTopic: "text" });
 
 module.exports = mongoose.model("Note", noteSchema);

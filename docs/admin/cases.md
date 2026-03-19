@@ -377,17 +377,17 @@ Retrieve all cases with pagination, filtering, and search capabilities.
 
 ### Query Parameters
 
-| Parameter | Type | Default | Max | Description |
-|-----------|------|---------|-----|-------------|
-| `limit` | number | 25 | - | Number of items per page |
-| `cursor` | string | null | - | Cursor for pagination |
-| `order` | string | "desc" | - | Sort order: "asc" or "desc" (Sorts by ID) |
-| `search` | string | - | - | Search in title, citation, summary, ratioDecidendi, keywords |
-| `title` | string | - | - | Filter by exact title |
-| `citation` | string | - | - | Filter by exact citation |
-| `jurisdiction` | string | - | - | Filter by jurisdiction |
-| `courtLevel` | string | - | - | Filter by court level |
-| `courtName` | string | - | - | Filter by court name |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | 25 | Number of items per page |
+| `cursor` | string | null | Cursor for pagination |
+| `order` | string | `desc` | Sort order: `asc` or `desc` (sorts by _id) |
+| `search` | string | - | Full-text search in title, citation, summary, ratioDecidendi, keywords (uses $text index) |
+| `title` | string | - | Filter by exact title |
+| `citation` | string | - | Filter by exact citation |
+| `jurisdiction` | string | - | Filter by jurisdiction |
+| `courtLevel` | string | - | Filter by court level |
+| `courtName` | string | - | Filter by court name |
 
 ### Example Requests
 

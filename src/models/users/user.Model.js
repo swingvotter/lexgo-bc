@@ -69,7 +69,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["student", "lecturer", "admin"],
+      enum: ["student", "lecturer", "admin","dean","viceDean","examinationOfficer"],
       default: "student",
     },
 
@@ -152,6 +152,6 @@ userSchema.index(
 userSchema.index({ role: 1 });
 userSchema.index({ role: 1, _id: -1 });
 userSchema.index({ createdAt: -1 });
-userSchema.index({ firstName: 1, lastName: 1 });
+userSchema.index({ email: "text", firstName: "text", lastName: "text" });
 
 module.exports = mongoose.model("User", userSchema);

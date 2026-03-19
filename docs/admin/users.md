@@ -38,11 +38,11 @@ Authorization: Bearer <accessToken>
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `limit` | number | ❌ No | 25 | Items per page (max: 100) |
+| `limit` | number | ❌ No | 25 | Items per page |
 | `cursor` | string | ❌ No | null | Cursor for pagination |
-| `role` | string | ❌ No | - | Filter by role: `student`, `lecturer`, `admin`, `judge`, `lawyer` |
-| `search` | string | ❌ No | - | Search in email, firstName, lastName (case-insensitive) |
-| `sortOrder` | string | ❌ No | `desc` | Sort order: `asc` or `desc` |
+| `role` | string | ❌ No | - | Filter by role: `student`, `lecturer`, `admin` |
+| `search` | string | ❌ No | - | Full-text search in email, firstName, lastName (uses $text index) |
+| `sortOrder` | string | ❌ No | `desc` | Sort order: `asc` or `desc` (sorts by _id) |
 
 ### Example Requests
 

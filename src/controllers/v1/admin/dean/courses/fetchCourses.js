@@ -15,16 +15,11 @@ const adminFetchCoursesHandler = async (req, res) => {
 
     const query = {};
 
-    // Search filter
+    // Search filter using $text index
     if (req.query.search && typeof req.query.search === "string") {
         const searchTerm = req.query.search.trim();
         if (searchTerm.length > 0) {
-            const searchRegex = { $regex: searchTerm, $options: "i" };
-            query.$or = [
-                { title: searchRegex },
-                { courseCode: searchRegex },
-                { category: searchRegex },
-            ];
+            query.$text = { $search: searchTerm };
         }
     }
 
@@ -64,7 +59,13 @@ const adminFetchCoursesHandler = async (req, res) => {
         enrolledStudents: countMap[course._id.toString()] || 0,
     }));
 
-    logger.info("Courses fetched", { count: coursesWithExtraData.length, limit, cursor });
+    logger.info("Dean fetched courses", { 
+        deanId: req.userInfo?.id,
+        university: deanUniversity,
+        count: coursesWithExtraData.length, 
+        limit, 
+        cursor 
+    });
     return res.status(200).json({
         success: true,
         message: "Courses fetched successfully",
